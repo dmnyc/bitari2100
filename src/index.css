@@ -1,0 +1,762 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   BITARI 2100 - Retro Console Design System
+   ============================================================ */
+
+/* --- Base Reset --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Kill all smooth rendering - we want pixel-crisp edges */
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    image-rendering: pixelated;
+}
+
+html {
+    background: #000000;
+    color: #b0b0b0;
+    font-family: "Press Start 2P", monospace;
+    font-size: 20px;
+    line-height: 28px;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #000000;
+    overflow-x: hidden;
+}
+
+#root {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* --- Scrollbar (Atari-styled) --- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #000000;
+}
+::-webkit-scrollbar-thumb {
+    background: #6c6c6c;
+    border: 2px solid #000000;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #909090;
+}
+
+/* --- Selection --- */
+::selection {
+    background: #ac5030;
+    color: #000000;
+}
+
+/* ============================================================
+   4:3 VIEWPORT (Desktop)
+   ============================================================ */
+
+/* 4:3 container that scales proportionally within the viewport */
+.viewport-4x3 {
+    /* Max out at 4:3 that fits the screen */
+    width: min(calc(100vh * 4 / 3), 100vw);
+    height: min(100vh, calc(100vw * 3 / 4));
+    position: relative;
+}
+
+/* Scrollable content area fills the 4:3 box */
+.viewport-content {
+    height: min(100vh, calc(100vw * 3 / 4));
+}
+
+/* ============================================================
+   CRT SCREEN EFFECTS
+   ============================================================ */
+
+.crt-screen {
+    position: relative;
+    background: #000000;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+        inset 0 0 80px rgba(0, 0, 0, 0.4),
+        0 0 40px rgba(92, 156, 92, 0.08);
+}
+
+/* Scanline overlay */
+.crt-scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.12) 0px,
+        rgba(0, 0, 0, 0.12) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    pointer-events: none;
+    z-index: 50;
+}
+
+/* Vignette effect - darkened edges */
+.crt-vignette::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 55%,
+        rgba(0, 0, 0, 0.35) 100%
+    );
+    pointer-events: none;
+    z-index: 49;
+}
+
+/* Subtle screen flicker */
+.crt-flicker {
+    animation: flicker 0.15s infinite;
+}
+
+/* CRT power-on animation */
+.crt-boot {
+    animation: crt-on 0.5s ease-out;
+}
+
+/* Moving scanline bar (subtle) */
+.crt-scanline-bar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(92, 156, 92, 0.04);
+    filter: blur(2px);
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    z-index: 48;
+}
+
+/* ============================================================
+   PIXEL BORDERS
+   ============================================================ */
+
+.pixel-border {
+    border: 3px solid #6c6c6c;
+    background: #000000;
+}
+
+.pixel-border-orange {
+    border: 3px solid #ac5030;
+}
+
+.pixel-border-blue {
+    border: 3px solid #3840b0;
+}
+
+.pixel-border-green {
+    border: 3px solid #407c40;
+}
+
+.pixel-border-double {
+    border: 6px double #6c6c6c;
+}
+
+/* Dashed separator line */
+.pixel-divider {
+    border: none;
+    border-top: 3px dashed #404040;
+    margin: 10px 0;
+}
+
+/* ============================================================
+   ATARI BUTTONS
+   ============================================================ */
+
+.atari-btn {
+    font-family: "Press Start 2P", monospace;
+    font-size: 18px;
+    line-height: 24px;
+    padding: 16px 24px;
+    border: 3px solid;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 60px;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.atari-btn:active {
+    /* Invert colors on press - authentic Atari feel */
+    filter: invert(1);
+}
+
+.atari-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.atari-btn:disabled:active {
+    filter: none;
+}
+
+/* Primary - Bitcoin Orange */
+.atari-btn-primary {
+    background: #ac5030;
+    border-color: #c06848;
+    color: #000000;
+}
+.atari-btn-primary:hover:not(:disabled) {
+    background: #c06848;
+}
+
+/* Send - Blue */
+.atari-btn-send {
+    background: #3840b0;
+    border-color: #505cc0;
+    color: #d4d4d4;
+}
+.atari-btn-send:hover:not(:disabled) {
+    background: #505cc0;
+}
+
+/* Receive - Green */
+.atari-btn-receive {
+    background: #407c40;
+    border-color: #5c9c5c;
+    color: #d4d4d4;
+}
+.atari-btn-receive:hover:not(:disabled) {
+    background: #5c9c5c;
+}
+
+/* Secondary - Outlined */
+.atari-btn-secondary {
+    background: transparent;
+    border-color: #6c6c6c;
+    color: #b0b0b0;
+}
+.atari-btn-secondary:hover:not(:disabled) {
+    border-color: #ac5030;
+    color: #ac5030;
+}
+
+/* Danger - Red */
+.atari-btn-danger {
+    background: #b03c3c;
+    border-color: #c05858;
+    color: #d4d4d4;
+}
+.atari-btn-danger:hover:not(:disabled) {
+    background: #c05858;
+}
+
+/* ============================================================
+   ATARI INPUTS
+   ============================================================ */
+
+.atari-input {
+    font-family: "Press Start 2P", monospace;
+    font-size: 18px;
+    line-height: 24px;
+    padding: 16px 20px;
+    background: #000000;
+    border: 3px solid #6c6c6c;
+    color: #b0b0b0;
+    width: 100%;
+    outline: none;
+    caret-color: #ac5030;
+    min-height: 52px;
+}
+
+.atari-input:focus {
+    border-color: #ac5030;
+    color: #d4d4d4;
+}
+
+.atari-input::placeholder {
+    color: #404040;
+}
+
+.atari-textarea {
+    font-family: "Press Start 2P", monospace;
+    font-size: 18px;
+    line-height: 24px;
+    padding: 16px 20px;
+    background: #000000;
+    border: 3px solid #6c6c6c;
+    color: #b0b0b0;
+    width: 100%;
+    outline: none;
+    resize: vertical;
+    caret-color: #ac5030;
+}
+
+.atari-textarea:focus {
+    border-color: #ac5030;
+    color: #d4d4d4;
+}
+
+/* ============================================================
+   ATARI SWITCH (Difficulty Switch Toggle)
+   ============================================================ */
+
+.atari-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.atari-switch-track {
+    width: 52px;
+    height: 26px;
+    background: #404040;
+    border: 3px solid #6c6c6c;
+    position: relative;
+    transition: background 0.1s steps(2);
+}
+
+.atari-switch-track.active {
+    background: #205c20;
+    border-color: #407c40;
+}
+
+.atari-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #b0b0b0;
+    transition: left 0.1s steps(2);
+}
+
+.atari-switch-track.active .atari-switch-thumb {
+    left: 28px;
+    background: #5c9c5c;
+}
+
+/* ============================================================
+   SCORE DISPLAY (Balance)
+   ============================================================ */
+
+.score-display {
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px 12px;
+}
+
+.score-label {
+    font-size: 18px;
+    color: #6c6c6c;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+}
+
+.score-value {
+    font-size: 42px;
+    line-height: 52px;
+    color: #d4d4d4;
+    letter-spacing: 4px;
+}
+
+.score-fiat {
+    font-size: 18px;
+    color: #909090;
+    margin-top: 8px;
+}
+
+/* Score increase animation */
+.score-bump {
+    animation: score-up 0.3s ease-out;
+}
+
+/* ============================================================
+   TRANSACTION LIST (Scoreboard)
+   ============================================================ */
+
+.tx-row {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    gap: 12px;
+    font-size: 16px;
+    line-height: 24px;
+    border-bottom: 2px solid #1a1a1a;
+    cursor: pointer;
+}
+
+.tx-row:hover {
+    background: #1a1a1a;
+}
+
+.tx-type {
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    width: 52px;
+    flex-shrink: 0;
+}
+
+.tx-type-receive {
+    color: #407c40;
+}
+
+.tx-type-send {
+    color: #3840b0;
+}
+
+.tx-desc {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #909090;
+}
+
+.tx-amount {
+    text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tx-amount-positive {
+    color: #5c9c5c;
+}
+
+.tx-amount-negative {
+    color: #b0b0b0;
+}
+
+/* ============================================================
+   DIALOG / BOTTOM SHEET
+   ============================================================ */
+
+.atari-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 60;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.atari-dialog {
+    background: #000000;
+    border: 4px double #6c6c6c;
+    width: 100%;
+    max-width: 768px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: pixel-fade 0.3s steps(4);
+}
+
+.atari-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 3px dashed #404040;
+}
+
+.atari-dialog-title {
+    font-size: 20px;
+    color: #d4d4d4;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+}
+
+.atari-dialog-close {
+    font-family: "Press Start 2P", monospace;
+    font-size: 18px;
+    background: none;
+    border: 3px solid #6c6c6c;
+    color: #6c6c6c;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.atari-dialog-close:hover {
+    border-color: #b03c3c;
+    color: #b03c3c;
+}
+
+.atari-dialog-body {
+    padding: 20px 16px;
+}
+
+/* ============================================================
+   PAUSE MENU (Side Menu)
+   ============================================================ */
+
+.pause-menu {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pixel-fade 0.2s steps(4);
+}
+
+.pause-menu-content {
+    text-align: center;
+}
+
+.pause-menu-title {
+    font-size: 32px;
+    color: #ac5030;
+    letter-spacing: 8px;
+    margin-bottom: 48px;
+}
+
+.pause-menu-item {
+    font-family: "Press Start 2P", monospace;
+    font-size: 20px;
+    color: #b0b0b0;
+    padding: 18px 36px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+    position: relative;
+    letter-spacing: 2px;
+}
+
+.pause-menu-item:hover {
+    color: #d4d4d4;
+}
+
+.pause-menu-item:hover::before {
+    content: ">";
+    position: absolute;
+    left: 8px;
+    color: #ac5030;
+}
+
+.pause-menu-item.disabled {
+    color: #404040;
+    cursor: not-allowed;
+}
+
+.pause-menu-footer {
+    margin-top: 48px;
+    font-size: 16px;
+    color: #404040;
+    letter-spacing: 2px;
+}
+
+/* ============================================================
+   LOADING BAR
+   ============================================================ */
+
+.atari-loading-bar {
+    width: 100%;
+    height: 8px;
+    border: 2px solid #6c6c6c;
+    position: relative;
+    overflow: hidden;
+}
+
+.atari-loading-fill {
+    height: 100%;
+    background: #ac5030;
+    transition: width 0.1s steps(8);
+}
+
+.atari-loading-indeterminate .atari-loading-fill {
+    width: 30%;
+    animation: loading-bounce 1.5s steps(8) infinite;
+}
+
+@keyframes loading-bounce {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(400%);
+    }
+}
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+
+.atari-toast {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+    font-family: "Press Start 2P", monospace;
+    font-size: 16px;
+    padding: 16px 24px;
+    border: 3px solid;
+    animation: pixel-fade 0.3s steps(4);
+    max-width: calc(100vw - 32px);
+}
+
+.atari-toast-success {
+    background: #000000;
+    border-color: #407c40;
+    color: #5c9c5c;
+}
+
+.atari-toast-error {
+    background: #000000;
+    border-color: #b03c3c;
+    color: #c05858;
+}
+
+.atari-toast-info {
+    background: #000000;
+    border-color: #6c6c6c;
+    color: #b0b0b0;
+}
+
+/* ============================================================
+   HIGH SCORE CELEBRATION
+   ============================================================ */
+
+.celebration-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    animation: pixel-fade 0.3s steps(4);
+}
+
+.celebration-stars {
+    font-size: 24px;
+    color: #a0a034;
+    letter-spacing: 6px;
+    animation: star-twinkle 0.8s steps(3) infinite;
+}
+
+.celebration-title {
+    font-size: 28px;
+    color: #5c9c5c;
+    letter-spacing: 6px;
+    animation: title-blink 1.5s steps(2) infinite;
+}
+
+.celebration-amount {
+    font-size: 22px;
+    color: #d4d4d4;
+    letter-spacing: 3px;
+}
+
+/* ============================================================
+   QR CODE CONTAINER
+   ============================================================ */
+
+.qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.qr-frame {
+    border: 4px solid #6c6c6c;
+    padding: 8px;
+    background: #ffffff;
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Atari text colors */
+.text-atari-orange {
+    color: #ac5030;
+}
+.text-atari-blue {
+    color: #3840b0;
+}
+.text-atari-green {
+    color: #407c40;
+}
+.text-atari-red {
+    color: #b03c3c;
+}
+.text-atari-yellow {
+    color: #a0a034;
+}
+.text-atari-muted {
+    color: #6c6c6c;
+}
+.text-atari-dim {
+    color: #404040;
+}
+
+/* Sprite flicker effect */
+.sprite-flicker {
+    animation: flicker 0.15s infinite;
+}
+
+/* Stepped transitions for authentic feel */
+.transition-stepped {
+    transition-timing-function: steps(4);
+}
+
+/* No-select for game-like elements */
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ============================================================
+   RESPONSIVE - Mobile adjustments
+   ============================================================ */
+
+@media (max-width: 480px) {
+    .score-value {
+        font-size: 28px;
+        line-height: 36px;
+    }
+
+    .atari-btn {
+        font-size: 14px;
+        padding: 14px 18px;
+    }
+
+    /* Reduce scanline intensity on small screens for readability */
+    .crt-scanlines::after {
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.06) 0px,
+            rgba(0, 0, 0, 0.06) 1px,
+            transparent 1px,
+            transparent 3px
+        );
+    }
+}
+
+/* Desktop TV cabinet handles its own layout via flexbox centering */
