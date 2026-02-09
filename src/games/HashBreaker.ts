@@ -344,6 +344,14 @@ export function createHashBreaker(
     touchX = null;
   }
 
+  function onMouseClick() {
+    if (state === "title" || state === "gameOver") {
+      startGame();
+    } else if (state === "playing" && !ball.active) {
+      launchBall();
+    }
+  }
+
   function onMouseMove(e: MouseEvent) {
     if (state !== "playing") return;
     const rect = canvas.getBoundingClientRect();
@@ -676,6 +684,7 @@ export function createHashBreaker(
     canvas.addEventListener("touchmove", onTouchMove, { passive: false });
     canvas.addEventListener("touchend", onTouchEnd, { passive: false });
     canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("click", onMouseClick);
 
     setState("title");
     gameLoop();
@@ -690,6 +699,7 @@ export function createHashBreaker(
     canvas.removeEventListener("touchmove", onTouchMove);
     canvas.removeEventListener("touchend", onTouchEnd);
     canvas.removeEventListener("mousemove", onMouseMove);
+    canvas.removeEventListener("click", onMouseClick);
     rafId = null;
   }
 
