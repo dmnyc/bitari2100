@@ -331,7 +331,9 @@ const AppContent: React.FC = () => {
         urlScreen && authScreens.includes(urlScreen) ? urlScreen : "wallet";
       navigateSilent(target);
     } else {
-      navigateSilent("home");
+      // Allow arcade without auth
+      const urlScreen = PATH_TO_SCREEN[window.location.pathname];
+      navigateSilent(urlScreen === "arcade" ? "arcade" : "home");
       setIsLoading(false);
     }
 
@@ -514,6 +516,7 @@ const AppContent: React.FC = () => {
           <HomePage
             onRestoreWallet={navigateToRestore}
             onCreateNewWallet={navigateToGenerate}
+            onOpenArcade={() => navigateTo("arcade")}
           />
         );
 
@@ -618,7 +621,10 @@ const AppContent: React.FC = () => {
       case "arcade":
         return (
           <Suspense fallback={<AtariLoading />}>
-            <ArcadePage onBack={() => navigateTo("wallet")} />
+            <ArcadePage
+              onBack={() => navigateTo(isConnected ? "wallet" : "home")}
+              onCreateWallet={isConnected ? undefined : navigateToGenerate}
+            />
           </Suspense>
         );
 

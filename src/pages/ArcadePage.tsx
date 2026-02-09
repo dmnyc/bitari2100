@@ -23,9 +23,10 @@ type ArcadeScreen = "menu" | "donate" | "playing" | "rom";
 
 interface ArcadePageProps {
   onBack: () => void;
+  onCreateWallet?: () => void;
 }
 
-const ArcadePage: React.FC<ArcadePageProps> = ({ onBack }) => {
+const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
   const wallet = useWallet();
   const { showToast } = useToast();
   const { muted } = useAudio();
@@ -187,6 +188,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack }) => {
             onZap={handleZap}
             onFreePlay={handleFreePlay}
             onPaymentConfirmed={handlePaymentConfirmed}
+            onCreateWallet={onCreateWallet}
           />
         )}
 
@@ -303,6 +305,7 @@ function DonateGate({
   onZap,
   onFreePlay,
   onPaymentConfirmed,
+  onCreateWallet,
 }: {
   wallet: ReturnType<typeof useWallet>;
   hasWallet: boolean;
@@ -312,6 +315,7 @@ function DonateGate({
   onZap: () => void;
   onFreePlay: () => void;
   onPaymentConfirmed: () => void;
+  onCreateWallet?: () => void;
 }) {
   const [invoice, setInvoice] = useState<string | null>(null);
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
@@ -433,6 +437,18 @@ function DonateGate({
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* Wallet CTA for unauthenticated users */}
+      {!hasWallet && onCreateWallet && (
+        <div className="flex flex-col items-center gap-3 mt-2">
+          <div className="font-pixel text-xs text-atari-midgray text-center max-w-xs leading-relaxed">
+            CREATE A WALLET TO ZAP
+          </div>
+          <AtariButton variant="primary" onClick={onCreateWallet}>
+            CREATE WALLET
+          </AtariButton>
         </div>
       )}
 

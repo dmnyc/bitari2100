@@ -281,6 +281,14 @@ body {
 .atari-btn-danger:hover:not(:disabled) {
     background: #c05858;
 }
+.atari-btn-arcade {
+    background: #6c3ca0;
+    border-color: #8050b8;
+    color: #d4d4d4;
+}
+.atari-btn-arcade:hover:not(:disabled) {
+    background: #8050b8;
+}
 
 /* ============================================================
    ATARI INPUTS

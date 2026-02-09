@@ -8,11 +8,13 @@ import { playIntroLoop } from "../services/tiaSoundService";
 interface HomePageProps {
   onRestoreWallet: () => void;
   onCreateNewWallet: () => void;
+  onOpenArcade: () => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({
   onRestoreWallet,
   onCreateNewWallet,
+  onOpenArcade,
 }) => {
   const [started, setStarted] = useState(false);
   const stopIntroRef = useRef<(() => void) | null>(null);
@@ -82,6 +84,19 @@ const HomePage: React.FC<HomePageProps> = ({
           >
             RESTORE
           </AtariButton>
+
+          <div className="border-t-2 border-dashed border-atari-darkgray pt-4">
+            <AtariButton
+              variant="arcade"
+              fullWidth
+              onClick={() => {
+                stopMusic();
+                onOpenArcade();
+              }}
+            >
+              ARCADE
+            </AtariButton>
+          </div>
         </div>
       )}
 

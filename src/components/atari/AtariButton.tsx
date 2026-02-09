@@ -6,7 +6,8 @@ type AtariButtonVariant =
   | "send"
   | "receive"
   | "secondary"
-  | "danger";
+  | "danger"
+  | "arcade";
 
 interface AtariButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: AtariButtonVariant;
@@ -20,6 +21,7 @@ const variantClasses: Record<AtariButtonVariant, string> = {
   receive: "atari-btn-receive",
   secondary: "atari-btn-secondary",
   danger: "atari-btn-danger",
+  arcade: "atari-btn-arcade",
 };
 
 export function AtariButton({
