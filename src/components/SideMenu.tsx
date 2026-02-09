@@ -3,7 +3,6 @@ import { AtariButton } from "./atari/AtariButton";
 import {
   playClick,
   playDanger,
-  playGameOver,
   playHover,
   playMenuSelect,
 } from "../services/tiaSoundService";
@@ -39,7 +38,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
   if (!isOpen) return null;
 
   const handleConfirmLogout = () => {
-    playGameOver();
     setShowLogoutConfirm(false);
     onClose();
     onLogout();

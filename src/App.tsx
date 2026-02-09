@@ -10,9 +10,11 @@ import {
   playNavigate,
   playUnmute,
   playWalletReady,
+  playGameOver,
   isMuted,
   setMuted,
 } from "./services/tiaSoundService";
+import { SpaceScene } from "./components/atari/SpaceScene";
 import {
   Config,
   GetInfoResponse,
@@ -140,6 +142,7 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isRestoring, setIsRestoring] = useState<boolean>(false);
+  const [showGameOver, setShowGameOver] = useState<boolean>(false);
 
   const isInitialLoadRef = useRef<boolean>(true);
   const [walletInfo, setWalletInfo] = useState<GetInfoResponse | null>(null);
@@ -464,9 +467,13 @@ const AppContent: React.FC = () => {
       setTransactions([]);
       setConfig(null);
 
-      navigateSilent("home");
+      setShowGameOver(true);
+      playGameOver();
 
-      showToast("success", "LOGGED OUT");
+      setTimeout(() => {
+        setShowGameOver(false);
+        navigateSilent("home");
+      }, 3000);
     } catch (error) {
       console.error("Logout failed:", error);
       setError("Failed to log out properly. Please try again.");
@@ -474,7 +481,7 @@ const AppContent: React.FC = () => {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, showToast]);
+  }, [isConnected]);
 
   const navigateToRestore = () => navigateTo("restore");
   const navigateToGenerate = () => navigateTo("generate");
@@ -637,6 +644,14 @@ const AppContent: React.FC = () => {
           amount={celebrationAmount}
           onClose={() => setCelebrationAmount(null)}
         />
+      )}
+      {showGameOver && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black">
+          <SpaceScene />
+          <div className="relative z-10 font-pixel text-2xl sm:text-4xl text-atari-red tracking-wider animate-title-blink">
+            GAME OVER
+          </div>
+        </div>
       )}
       {isConnected && <NotificationPrompt />}
       <InstallPrompt />
