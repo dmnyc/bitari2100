@@ -13,7 +13,14 @@ export interface ConfirmStepProps {
   onConfirm: () => void;
 }
 
-const ConfirmStep: React.FC<ConfirmStepProps> = ({ amountSats, feesSat, error, isLoading, onBack, onConfirm }) => {
+const ConfirmStep: React.FC<ConfirmStepProps> = ({
+  amountSats,
+  feesSat,
+  error,
+  isLoading,
+  onBack,
+  onConfirm,
+}) => {
   const amount = Number(amountSats || 0n);
   const fee = Number(feesSat || 0);
   const total = amount + fee;
@@ -39,14 +46,18 @@ const ConfirmStep: React.FC<ConfirmStepProps> = ({ amountSats, feesSat, error, i
       {/* Action buttons */}
       <div className="flex gap-3">
         {onBack && (
-          <SecondaryButton onClick={onBack} disabled={isLoading} className="flex-1">
+          <SecondaryButton
+            onClick={onBack}
+            disabled={isLoading}
+            className="flex-1"
+          >
             Back
           </SecondaryButton>
         )}
         <PrimaryButton
           onClick={onConfirm}
           disabled={isLoading}
-          className={onBack ? 'flex-1' : 'w-full'}
+          className={onBack ? "flex-1" : "w-full"}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
@@ -54,7 +65,7 @@ const ConfirmStep: React.FC<ConfirmStepProps> = ({ amountSats, feesSat, error, i
               Processing...
             </span>
           ) : (
-            'Confirm & Send'
+            "Confirm & Send"
           )}
         </PrimaryButton>
       </div>

@@ -542,6 +542,22 @@ export function playDanger() {
   playNoise(0.25, 0.15, t + 0.35);
 }
 
+/** Ascending fanfare for wallet create/restore success */
+export function playWalletReady() {
+  if (_muted) return;
+  const ac = getCtx();
+  const t = ac.currentTime;
+  playTone(262, 0.1, 0.14, t); // C4
+  playTone(330, 0.1, 0.14, t + 0.12); // E4
+  playTone(392, 0.1, 0.14, t + 0.24); // G4
+  playTone(523, 0.1, 0.16, t + 0.36); // C5
+  playTone(659, 0.12, 0.16, t + 0.48); // E5
+  playTone(784, 0.18, 0.18, t + 0.6); // G5 (held)
+  playTone(1047, 0.3, 0.2, t + 0.6); // C6 (octave, held longest)
+  playNoise(0.08, 0.06, t + 0.65);
+  playNoise(0.05, 0.04, t + 0.75);
+}
+
 /** Classic game-over jingle for logout */
 export function playGameOver() {
   if (_muted) return;

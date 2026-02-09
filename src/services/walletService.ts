@@ -1,4 +1,4 @@
-import * as breezSdk from '@breeztech/breez-sdk-spark';
+import * as breezSdk from "@breeztech/breez-sdk-spark";
 import {
   BreezSdk,
   Config,
@@ -28,8 +28,8 @@ import {
   UpdateUserSettingsRequest,
   FiatCurrency,
   Rate,
-} from '@breeztech/breez-sdk-spark';
-import type { WalletAPI } from './WalletAPI';
+} from "@breeztech/breez-sdk-spark";
+import type { WalletAPI } from "./WalletAPI";
 
 class WebLogger {
   log = (logEntry: LogEntry) => {
@@ -37,7 +37,7 @@ class WebLogger {
     const formatted = `${ts} [${logEntry.level}]: ${logEntry.line}`;
     console.log(formatted);
     appendLog(formatted);
-  }
+  };
 }
 // Private SDK instance - not exposed outside this module
 let sdk: BreezSdk | null = null;
@@ -53,10 +53,13 @@ function appendLog(line: string) {
   }
 }
 
-export const initWallet = async (mnemonic: string, config: Config): Promise<void> => {
+export const initWallet = async (
+  mnemonic: string,
+  config: Config,
+): Promise<void> => {
   // If already connected, do nothing
   if (sdk) {
-    console.warn('initWallet called but SDK is already initialized; skipping');
+    console.warn("initWallet called but SDK is already initialized; skipping");
     return;
   }
 
@@ -65,10 +68,14 @@ export const initWallet = async (mnemonic: string, config: Config): Promise<void
       logger = new WebLogger();
       initLogging(logger);
     }
-    sdk = await connect({ config, seed: { type: "mnemonic", mnemonic }, storageDir: "spark-wallet-example" });
-    console.log('Wallet initialized successfully');
+    sdk = await connect({
+      config,
+      seed: { type: "mnemonic", mnemonic },
+      storageDir: "spark-wallet-example",
+    });
+    console.log("Wallet initialized successfully");
   } catch (error) {
-    console.error('Failed to initialize wallet:', error);
+    console.error("Failed to initialize wallet:", error);
     throw error;
   }
 };
@@ -77,95 +84,108 @@ export const initWallet = async (mnemonic: string, config: Config): Promise<void
 
 // Add specific methods for actions components need to perform
 // Payment Operations
-export const parseInput = async (input: string): Promise<breezSdk.InputType> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const parseInput = async (
+  input: string,
+): Promise<breezSdk.InputType> => {
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.parse(input);
 };
 
 export const prepareLnurlPay = async (
-  params: PrepareLnurlPayRequest
+  params: PrepareLnurlPayRequest,
 ): Promise<PrepareLnurlPayResponse> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.prepareLnurlPay(params);
 };
 
 export const lnurlPay = async (
-  params: LnurlPayRequest
+  params: LnurlPayRequest,
 ): Promise<LnurlPayResponse> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.lnurlPay(params);
 };
 
 export const prepareSendPayment = async (
-  params: PrepareSendPaymentRequest
+  params: PrepareSendPaymentRequest,
 ): Promise<PrepareSendPaymentResponse> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.prepareSendPayment(params);
 };
 
 export const sendPayment = async (
-  params: SendPaymentRequest
+  params: SendPaymentRequest,
 ): Promise<SendPaymentResponse> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.sendPayment(params);
 };
 
 export const receivePayment = async (
-  params: ReceivePaymentRequest
+  params: ReceivePaymentRequest,
 ): Promise<ReceivePaymentResponse> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.receivePayment(params);
 };
 
 export const unclaimedDeposits = async (): Promise<DepositInfo[]> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return (await sdk.listUnclaimedDeposits({})).deposits;
 };
 
-export const claimDeposit = async (txid: string, vout: number, maxFee: Fee): Promise<void> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const claimDeposit = async (
+  txid: string,
+  vout: number,
+  maxFee: Fee,
+): Promise<void> => {
+  if (!sdk) throw new Error("SDK not initialized");
   await sdk.claimDeposit({ txid, vout, maxFee });
 };
 
-export const refundDeposit = async (txid: string, vout: number, destinationAddress: string, fee: Fee): Promise<void> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const refundDeposit = async (
+  txid: string,
+  vout: number,
+  destinationAddress: string,
+  fee: Fee,
+): Promise<void> => {
+  if (!sdk) throw new Error("SDK not initialized");
   await sdk.refundDeposit({ txid, vout, destinationAddress, fee });
 };
 
 // User Settings
 export const getUserSettings = async (): Promise<UserSettings> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   return await sdk.getUserSettings();
 };
 
-export const setUserSettings = async (settings: UpdateUserSettingsRequest): Promise<void> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const setUserSettings = async (
+  settings: UpdateUserSettingsRequest,
+): Promise<void> => {
+  if (!sdk) throw new Error("SDK not initialized");
   await sdk.updateUserSettings(settings);
 };
 
 // Fiat currencies
 export const listFiatCurrencies = async (): Promise<FiatCurrency[]> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   const response = await sdk.listFiatCurrencies();
   return response.currencies;
 };
 
 export const listFiatRates = async (): Promise<Rate[]> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   const response = await sdk.listFiatRates();
   return response.rates;
 };
 
 // Logs accessors
 export const getSdkLogs = (): string => {
-  return sdkLogs.join('\n');
+  return sdkLogs.join("\n");
 };
 // Event handling
 export const addEventListener = async (
-  callback: (event: SdkEvent) => void
+  callback: (event: SdkEvent) => void,
 ): Promise<string> => {
   if (!sdk) {
-    throw new Error('SDK not initialized');
+    throw new Error("SDK not initialized");
   }
 
   try {
@@ -176,23 +196,25 @@ export const addEventListener = async (
 
     // Add event listener to SDK and return its ID
     const listenerId = await sdk.addEventListener(listener);
-    console.log('Event listener added with ID:', listenerId);
+    console.log("Event listener added with ID:", listenerId);
     return listenerId;
   } catch (error) {
-    console.error('Failed to add event listener:', error);
+    console.error("Failed to add event listener:", error);
     throw error;
   }
 };
 
 // Remove event listener directly from the SDK
-export const removeEventListener = async (listenerId: string): Promise<void> => {
+export const removeEventListener = async (
+  listenerId: string,
+): Promise<void> => {
   if (!sdk || !listenerId) {
     return;
   }
 
   try {
     await sdk.removeEventListener(listenerId);
-    console.log('Event listener removed:', listenerId);
+    console.log("Event listener removed:", listenerId);
   } catch (error) {
     console.error(`Failed to remove event listener ${listenerId}:`, error);
     throw error;
@@ -208,7 +230,7 @@ export const getWalletInfo = async (): Promise<GetInfoResponse | null> => {
     const request: GetInfoRequest = {};
     return await sdk.getInfo(request);
   } catch (error) {
-    console.error('Failed to get wallet info:', error);
+    console.error("Failed to get wallet info:", error);
     throw error;
   }
 };
@@ -221,12 +243,12 @@ export const getTransactions = async (): Promise<Payment[]> => {
   try {
     const request: ListPaymentsRequest = {
       offset: 0,
-      limit: 100
+      limit: 100,
     };
     const response: ListPaymentsResponse = await sdk.listPayments(request);
     return response.payments;
   } catch (error) {
-    console.error('Failed to get transactions:', error);
+    console.error("Failed to get transactions:", error);
     throw error;
   }
 };
@@ -239,7 +261,7 @@ export const disconnect = async (): Promise<void> => {
       sdk = null;
       // Remove reference to window.sdk
     } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
+      console.error("Failed to disconnect wallet:", error);
       throw error;
     }
   }
@@ -251,58 +273,64 @@ export const connected = (): boolean => {
 
 // Helper to save mnemonic to localStorage
 export const saveMnemonic = (mnemonic: string): void => {
-  localStorage.setItem('walletMnemonic', mnemonic);
+  localStorage.setItem("walletMnemonic", mnemonic);
 };
 
 // Helper to retrieve mnemonic from localStorage
 export const getSavedMnemonic = (): string | null => {
-  return localStorage.getItem('walletMnemonic');
+  return localStorage.getItem("walletMnemonic");
 };
 
 // Helper to clear mnemonic from localStorage
 export const clearMnemonic = (): void => {
-  localStorage.removeItem('walletMnemonic');
+  localStorage.removeItem("walletMnemonic");
 };
 
 // Lightning Address Operations
-export const getLightningAddress = async (): Promise<breezSdk.LightningAddressInfo | null> => {
-  if (!sdk) throw new Error('SDK not initialized');
-  try {
-    // Return the full structure as provided by the underlying SDK
-    const result = await sdk.getLightningAddress();
-    return result ?? null;
-  } catch (error) {
-    console.error('Failed to get lightning address:', error);
-    return null;
-  }
-};
+export const getLightningAddress =
+  async (): Promise<breezSdk.LightningAddressInfo | null> => {
+    if (!sdk) throw new Error("SDK not initialized");
+    try {
+      // Return the full structure as provided by the underlying SDK
+      const result = await sdk.getLightningAddress();
+      return result ?? null;
+    } catch (error) {
+      console.error("Failed to get lightning address:", error);
+      return null;
+    }
+  };
 
-export const checkLightningAddressAvailable = async (username: string): Promise<boolean> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const checkLightningAddressAvailable = async (
+  username: string,
+): Promise<boolean> => {
+  if (!sdk) throw new Error("SDK not initialized");
   try {
     return await sdk.checkLightningAddressAvailable({ username });
   } catch (error) {
-    console.error('Failed to check lightning address availability:', error);
+    console.error("Failed to check lightning address availability:", error);
     throw error;
   }
 };
 
-export const registerLightningAddress = async (username: string, description: string): Promise<void> => {
-  if (!sdk) throw new Error('SDK not initialized');
+export const registerLightningAddress = async (
+  username: string,
+  description: string,
+): Promise<void> => {
+  if (!sdk) throw new Error("SDK not initialized");
   try {
     await sdk.registerLightningAddress({ username, description });
   } catch (error) {
-    console.error('Failed to register lightning address:', error);
+    console.error("Failed to register lightning address:", error);
     throw error;
   }
 };
 
 export const deleteLightningAddress = async (): Promise<void> => {
-  if (!sdk) throw new Error('SDK not initialized');
+  if (!sdk) throw new Error("SDK not initialized");
   try {
     await sdk.deleteLightningAddress();
   } catch (error) {
-    console.error('Failed to delete lightning address:', error);
+    console.error("Failed to delete lightning address:", error);
     throw error;
   }
 };

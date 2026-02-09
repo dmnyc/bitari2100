@@ -54,7 +54,7 @@ const HomePage: React.FC<HomePageProps> = ({
             onClick={handlePressStart}
             className="press-start-btn w-full font-pixel text-lg tracking-widest text-atari-black py-4 px-8 pixel-border"
           >
-            PRESS TO START
+            START HERE
           </button>
         </div>
       ) : (

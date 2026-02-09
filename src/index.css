@@ -65,48 +65,17 @@ body {
    Mobile: full-screen vertical. Desktop: 4:3 centered + letterbox.
    ============================================================ */
 
-/* Mobile: fill the screen */
-.atari-console-shell {
-    min-height: 100vh;
-    min-height: 100dvh;
-}
-
-.atari-console-viewport {
-    min-height: 100vh;
-    min-height: 100dvh;
-}
-
-.atari-console-content {
+/* 4:3 container that scales proportionally within the viewport */
+.viewport-4x3 {
+    /* Max out at 4:3 that fits the screen */
+    width: min(calc(100vh * 4 / 3), 100vw);
+    height: min(100vh, calc(100vw * 3 / 4));
     position: relative;
-    z-index: 10;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-y: auto;
 }
 
-/* Desktop: 4:3 centered with black letterboxing */
-@media (min-width: 1024px) {
-    .atari-console-shell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: #000000;
-    }
-
-    .atari-console-viewport {
-        width: min(calc(100vh * 4 / 3), 100vw);
-        height: min(100vh, calc(100vw * 3 / 4));
-        position: relative;
-        min-height: auto;
-    }
-
-    .atari-console-content {
-        height: min(100vh, calc(100vw * 3 / 4));
-        min-height: auto;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+/* Scrollable content area fills the 4:3 box */
+.viewport-content {
+    height: min(100vh, calc(100vw * 3 / 4));
 }
 
 /* ============================================================
@@ -458,6 +427,14 @@ body {
     justify-content: center;
     width: 20px;
     flex-shrink: 0;
+}
+
+.tx-type-receive {
+    color: #407c40;
+}
+
+.tx-type-send {
+    color: #3840b0;
 }
 
 .tx-desc {

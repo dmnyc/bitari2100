@@ -14,6 +14,7 @@ interface SideMenuProps {
   onOpenSettings: () => void;
   onOpenBackup: () => void;
   onOpenRefund?: () => void;
+  onOpenArcade?: () => void;
   onOpenAbout?: () => void;
   hasRejectedDeposits?: boolean;
 }
@@ -28,6 +29,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
   onOpenSettings,
   onOpenBackup,
   onOpenRefund,
+  onOpenArcade,
   onOpenAbout,
   hasRejectedDeposits = false,
 }) => {
@@ -71,8 +73,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
     },
     {
       label: "ARCADE",
-      onClick: () => {},
-      disabled: true,
+      onClick: () => {
+        onOpenArcade?.();
+        onClose();
+      },
     },
     ...(onOpenAbout
       ? [
@@ -131,10 +135,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
               onPointerEnter={
                 "disabled" in item && item.disabled ? undefined : playHover
               }
-              disabled={"disabled" in item && item.disabled}
+              disabled={!!("disabled" in item && item.disabled)}
             >
               {item.label}
-              {"disabled" in item && item.disabled && (
+              {!!("disabled" in item && item.disabled) && (
                 <span className="font-pixel text-base text-atari-darkgray ml-3">
                   COMING SOON
                 </span>

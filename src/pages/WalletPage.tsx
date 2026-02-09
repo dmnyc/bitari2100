@@ -46,6 +46,7 @@ interface WalletPageProps {
   unclaimedDeposits: DepositInfo[];
   fiatRates: Rate[];
   fiatCurrencies: FiatCurrency[];
+  isConnecting: boolean;
   refreshWalletData: (showLoading?: boolean) => Promise<void>;
   isRestoring: boolean;
   error: string | null;
@@ -56,6 +57,7 @@ interface WalletPageProps {
   onOpenSettings: () => void;
   onOpenBackup: () => void;
   onOpenAbout?: () => void;
+  onOpenArcade?: () => void;
   onDepositChanged?: () => void;
 }
 
@@ -65,6 +67,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
   unclaimedDeposits,
   fiatRates,
   fiatCurrencies,
+  isConnecting,
   refreshWalletData,
   isRestoring,
   onLogout,
@@ -73,6 +76,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
   onOpenSettings,
   onOpenBackup,
   onOpenAbout,
+  onOpenArcade,
   onDepositChanged,
 }) => {
   const wallet = useWallet();
@@ -206,10 +210,12 @@ const WalletPage: React.FC<WalletPageProps> = ({
 
   return (
     <div className="flex flex-col h-[100dvh] relative overflow-hidden">
-      {/* Restoration overlay */}
-      {isRestoring && (
+      {/* Connecting / Restoring overlay */}
+      {(isConnecting || isRestoring) && (
         <div className="absolute inset-0 bg-atari-black z-50 flex items-center justify-center">
-          <LoadingSpinner text="RESTORING..." />
+          <LoadingSpinner
+            text={isRestoring ? "RESTORING..." : "CONNECTING..."}
+          />
         </div>
       )}
 
@@ -238,6 +244,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
             unclaimedDeposits,
           )}
           onPaymentSelected={handlePaymentSelected}
+          onRefresh={() => refreshWalletData(false)}
         />
       </div>
 
@@ -373,6 +380,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
         onOpenSettings={onOpenSettings}
         onOpenBackup={onOpenBackup}
         onOpenRefund={() => onOpenGetRefund("menu")}
+        onOpenArcade={onOpenArcade}
         onOpenAbout={onOpenAbout}
         hasRejectedDeposits={hasUnclaimedDeposits}
       />

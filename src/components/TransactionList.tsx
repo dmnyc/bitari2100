@@ -64,6 +64,7 @@ const SendArrow = () => (
 interface TransactionListProps {
   transactions: Payment[];
   onPaymentSelected: (payment: Payment) => void;
+  onRefresh?: () => void;
 }
 
 /**
@@ -73,6 +74,7 @@ interface TransactionListProps {
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   onPaymentSelected,
+  onRefresh,
 }) => {
   const { pendingApproval, regularPayments } = useMemo(() => {
     const pending: Payment[] = [];
@@ -87,23 +89,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     return { pendingApproval: pending, regularPayments: regular };
   }, [transactions]);
 
-  if (!transactions.length) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center py-20 px-4"
-        data-testid="empty-state"
-      >
-        <div className="font-pixel text-base text-atari-midgray mb-4">
-          NO PAYMENTS YET
-        </div>
-        <div className="font-pixel text-lg text-atari-darkgray text-center leading-relaxed">
-          YOUR SCORE HISTORY WILL
-          <br />
-          APPEAR HERE
-        </div>
-      </div>
-    );
-  }
+  const isEmpty = !transactions.length;
 
   const renderItem = (tx: Payment, index: number) => {
     const isReceive = tx.paymentType === "receive";
@@ -152,25 +138,57 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <div className="py-2">
-      {pendingApproval.length > 0 && (
-        <>
-          <div className="px-3 py-2">
-            <span className="font-pixel text-xs sm:text-base text-atari-yellow tracking-wider">
-              PENDING
-            </span>
-          </div>
-          {pendingApproval.map((tx, i) => renderItem(tx, i))}
-          <hr className="pixel-divider mx-3" />
-        </>
-      )}
+      {/* HISTORY / REFRESH header — always visible */}
+      <div className="px-3 py-2 flex items-center justify-between">
+        <span className="font-pixel text-xs sm:text-base text-atari-midgray tracking-wider">
+          HISTORY
+        </span>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            className="font-pixel text-xs sm:text-base text-atari-orange hover:text-atari-yellow tracking-wider"
+          >
+            REFRESH
+          </button>
+        )}
+      </div>
 
-      {regularPayments.length > 0 && (
-        <>
-          <div className="px-3 py-2">
-            <span className="font-pixel text-xs sm:text-base text-atari-midgray tracking-wider">
-              PAYMENTS
-            </span>
+      {isEmpty ? (
+        <div
+          className="flex flex-col items-center justify-center py-16 px-4"
+          data-testid="empty-state"
+        >
+          <div className="font-pixel text-base text-atari-midgray mb-4">
+            NO PAYMENTS YET
           </div>
+          <div className="font-pixel text-lg text-atari-darkgray text-center leading-relaxed mb-6">
+            YOUR SCORE HISTORY WILL
+            <br />
+            APPEAR HERE
+          </div>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="font-pixel text-sm text-atari-orange border-2 border-atari-orange px-6 py-3 hover:bg-atari-orange hover:text-atari-black transition-colors"
+            >
+              REFRESH
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {pendingApproval.length > 0 && (
+            <>
+              <div className="px-3 py-2">
+                <span className="font-pixel text-xs sm:text-base text-atari-yellow tracking-wider">
+                  PENDING
+                </span>
+              </div>
+              {pendingApproval.map((tx, i) => renderItem(tx, i))}
+              <hr className="pixel-divider mx-3" />
+            </>
+          )}
+
           {regularPayments.map((tx, i) => renderItem(tx, i))}
         </>
       )}

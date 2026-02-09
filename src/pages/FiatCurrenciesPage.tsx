@@ -43,7 +43,7 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col h-[100dvh]">
       <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
         <button
           onClick={onBack}

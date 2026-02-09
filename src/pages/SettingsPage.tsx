@@ -109,7 +109,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   };
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col h-[100dvh]">
       <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
         <button
           onClick={onBack}
@@ -124,7 +124,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         <MuteButton />
       </div>
 
-      <div className="p-5 space-y-8 max-w-lg mx-auto w-full">
+      <div className="flex-1 overflow-y-auto p-5 space-y-8 max-w-lg mx-auto w-full">
         {/* Display */}
         <div>
           <div className="font-pixel text-lg text-atari-orange mb-4 tracking-wider">

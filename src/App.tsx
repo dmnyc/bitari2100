@@ -9,6 +9,7 @@ import React, {
 import {
   playNavigate,
   playUnmute,
+  playWalletReady,
   isMuted,
   setMuted,
 } from "./services/tiaSoundService";
@@ -46,6 +47,7 @@ const BackupPage = lazy(() => import("./pages/BackupPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const FiatCurrenciesPage = lazy(() => import("./pages/FiatCurrenciesPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ArcadePage = lazy(() => import("./pages/ArcadePage"));
 
 import { getSettings } from "./services/settings";
 import { isDepositRejected } from "./services/depositState";
@@ -64,7 +66,8 @@ type Screen =
   | "settings"
   | "backup"
   | "fiatCurrencies"
-  | "about";
+  | "about"
+  | "arcade";
 
 const SCREEN_PATHS: Record<Screen, string> = {
   home: "/",
@@ -76,6 +79,7 @@ const SCREEN_PATHS: Record<Screen, string> = {
   backup: "/backup",
   fiatCurrencies: "/currencies",
   about: "/about",
+  arcade: "/arcade",
 };
 
 const PATH_TO_SCREEN: Record<string, Screen> = Object.fromEntries(
@@ -134,6 +138,7 @@ const AppContent: React.FC = () => {
 
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [isRestoring, setIsRestoring] = useState<boolean>(false);
 
   const isInitialLoadRef = useRef<boolean>(true);
@@ -301,145 +306,147 @@ const AppContent: React.FC = () => {
 
   // Try to connect with saved mnemonic on app startup
   useEffect(() => {
-    const checkForExistingWallet = async () => {
-      const savedMnemonic = wallet.getSavedMnemonic();
-      if (savedMnemonic) {
-        try {
-          setIsLoading(true);
-          await connectWallet(savedMnemonic, false);
-          // Restore screen from URL if it's an authenticated page, else default to wallet
-          const urlScreen = PATH_TO_SCREEN[window.location.pathname];
-          const authScreens: Screen[] = [
-            "wallet",
-            "settings",
-            "backup",
-            "fiatCurrencies",
-            "about",
-            "getRefund",
-          ];
-          const target =
-            urlScreen && authScreens.includes(urlScreen) ? urlScreen : "wallet";
-          navigateSilent(target);
-        } catch (error) {
-          console.error("Failed to connect with saved mnemonic:", error);
-          setError("Failed to connect with saved mnemonic. Please try again.");
-          wallet.clearMnemonic();
-          navigateSilent("home");
-          setIsLoading(false);
-        }
-      } else {
-        navigateSilent("home");
-        setIsLoading(false);
-      }
+    const savedMnemonic = wallet.getSavedMnemonic();
+    if (savedMnemonic) {
+      connectWallet(savedMnemonic, false);
+      // Restore screen from URL if it's an authenticated page, else default to wallet
+      const urlScreen = PATH_TO_SCREEN[window.location.pathname];
+      const authScreens: Screen[] = [
+        "wallet",
+        "settings",
+        "backup",
+        "fiatCurrencies",
+        "about",
+        "getRefund",
+        "arcade",
+      ];
+      const target =
+        urlScreen && authScreens.includes(urlScreen) ? urlScreen : "wallet";
+      navigateSilent(target);
+    } else {
+      navigateSilent("home");
+      setIsLoading(false);
+    }
 
-      if (isInitialLoadRef.current) {
-        isInitialLoadRef.current = false;
-        hideSplash();
-      }
-    };
-
-    checkForExistingWallet();
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      hideSplash();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only initialization
   }, []);
 
-  // Set up event listener when connected
+  // Cleanup event listener on unmount
   useEffect(() => {
-    if (isConnected) {
-      wallet
-        .addEventListener(handleSdkEvent)
-        .then((listenerId) => {
-          eventListenerIdRef.current = listenerId;
-        })
-        .catch((error) => {
-          console.error("Failed to add event listener:", error);
-          setError("Failed to set up event listeners.");
-        });
+    return () => {
+      if (eventListenerIdRef.current) {
+        wallet
+          .removeEventListener(eventListenerIdRef.current)
+          .catch((error) =>
+            console.error("Error removing event listener:", error),
+          );
+        eventListenerIdRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount-only cleanup
+  }, []);
 
-      return () => {
-        if (eventListenerIdRef.current) {
-          wallet
-            .removeEventListener(eventListenerIdRef.current)
-            .catch((error) =>
-              console.error("Error removing event listener:", error),
-            );
-          eventListenerIdRef.current = null;
-        }
-      };
-    }
-  }, [isConnected, handleSdkEvent, wallet]);
-
-  const connectWallet = async (
+  const connectWallet = (
     mnemonic: string,
     restore: boolean,
     overrideNetwork?: Network,
+    playSound: boolean = false,
   ) => {
-    try {
-      if (wallet.connected()) {
-        return;
-      }
-      setIsLoading(true);
-      setIsRestoring(restore);
-      setError(null);
-
-      const breezApiKey = import.meta.env.VITE_BREEZ_API_KEY;
-
-      if (!breezApiKey) {
-        showToast("error", "MISSING API KEY", "ADD VITE_BREEZ_API_KEY TO .ENV");
-        throw new Error("Breez API key not found.");
-      }
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const network = (overrideNetwork ??
-        urlParams.get("network") ??
-        "mainnet") as Network;
-      const config: Config = defaultConfig(network);
-      config.apiKey = breezApiKey;
-      config.privateEnabledDefault = false;
-
-      try {
-        const s = getSettings();
-        if (s.depositMaxFee) {
-          config.maxDepositClaimFee = s.depositMaxFee;
-        }
-        if (s.syncIntervalSecs != null) {
-          config.syncIntervalSecs = s.syncIntervalSecs;
-        }
-        if (s.lnurlDomain != null) {
-          config.lnurlDomain = s.lnurlDomain;
-        }
-        if (s.preferSparkOverLightning != null) {
-          config.preferSparkOverLightning = s.preferSparkOverLightning;
-        }
-      } catch (e) {
-        console.warn("Failed to apply user settings to config:", e);
-      }
-
-      setConfig(config);
-      await wallet.initWallet(mnemonic, config);
-
-      wallet.saveMnemonic(mnemonic);
-
-      const [info, txns] = await Promise.all([
-        wallet.getWalletInfo(),
-        wallet.getTransactions(),
-      ]);
-
-      setWalletInfo(info);
-      setTransactions(txns);
-
-      setIsConnected(true);
-      await fetchUnclaimedDeposits();
-      navigateSilent("wallet");
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error connecting wallet:", error);
-      setError(
-        "Failed to connect wallet. Please check your mnemonic and try again.",
-      );
-      setIsRestoring(false);
-      setIsLoading(false);
-      setConfig(null);
+    if (wallet.connected()) {
+      return;
     }
+    setError(null);
+
+    const breezApiKey = import.meta.env.VITE_BREEZ_API_KEY;
+
+    if (!breezApiKey) {
+      showToast("error", "MISSING API KEY", "ADD VITE_BREEZ_API_KEY TO .ENV");
+      return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const network = (overrideNetwork ??
+      urlParams.get("network") ??
+      "mainnet") as Network;
+    const config: Config = defaultConfig(network);
+    config.apiKey = breezApiKey;
+    config.privateEnabledDefault = false;
+
+    try {
+      const s = getSettings();
+      if (s.depositMaxFee) {
+        config.maxDepositClaimFee = s.depositMaxFee;
+      }
+      if (s.syncIntervalSecs != null) {
+        config.syncIntervalSecs = s.syncIntervalSecs;
+      }
+      if (s.lnurlDomain != null) {
+        config.lnurlDomain = s.lnurlDomain;
+      }
+      if (s.preferSparkOverLightning != null) {
+        config.preferSparkOverLightning = s.preferSparkOverLightning;
+      }
+    } catch (e) {
+      console.warn("Failed to apply user settings to config:", e);
+    }
+
+    setConfig(config);
+
+    // Show wallet page immediately with connecting overlay
+    setIsConnected(true);
+    setIsConnecting(true);
+    setIsRestoring(restore);
+    setIsLoading(false);
+    navigateSilent("wallet");
+    wallet.saveMnemonic(mnemonic);
+
+    // Connect in background
+    wallet
+      .initWallet(mnemonic, config)
+      .then(() => {
+        setIsConnecting(false);
+        setIsRestoring(false);
+        if (playSound) playWalletReady();
+
+        // Register event listener now that SDK is ready
+        wallet
+          .addEventListener(handleSdkEvent)
+          .then((listenerId) => {
+            eventListenerIdRef.current = listenerId;
+          })
+          .catch((error) => {
+            console.error("Failed to add event listener:", error);
+          });
+
+        // Fetch data immediately + retry after 3s (sync may have completed during connect)
+        const fetchData = () =>
+          Promise.all([wallet.getWalletInfo(), wallet.getTransactions()])
+            .then(([info, txns]) => {
+              setWalletInfo(info);
+              setTransactions(txns);
+            })
+            .catch((e) => console.warn("Data fetch error:", e));
+
+        fetchData();
+        setTimeout(fetchData, 3000);
+        fetchUnclaimedDeposits().catch(() => {});
+      })
+      .catch((error) => {
+        console.error("Error connecting wallet:", error);
+        setIsConnecting(false);
+        setIsRestoring(false);
+        setIsConnected(false);
+        setConfig(null);
+        wallet.clearMnemonic();
+        navigateSilent("home");
+        setError(
+          "Failed to connect wallet. Please check your mnemonic and try again.",
+        );
+      });
   };
 
   const handleLogout = useCallback(async () => {
@@ -538,7 +545,9 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <RestorePage
-              onConnect={(mnemonic) => connectWallet(mnemonic, true)}
+              onConnect={(mnemonic) =>
+                connectWallet(mnemonic, true, undefined, true)
+              }
               onBack={navigateToHome}
               onClearError={clearError}
             />
@@ -549,7 +558,9 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <GeneratePage
-              onMnemonicConfirmed={(mnemonic) => connectWallet(mnemonic, false)}
+              onMnemonicConfirmed={(mnemonic) =>
+                connectWallet(mnemonic, false, undefined, true)
+              }
               onBack={navigateToHome}
               error={error}
               onClearError={clearError}
@@ -565,6 +576,7 @@ const AppContent: React.FC = () => {
             unclaimedDeposits={unclaimedDeposits}
             fiatRates={fiatRates}
             fiatCurrencies={fiatCurrencies}
+            isConnecting={isConnecting}
             refreshWalletData={refreshWalletData}
             isRestoring={isRestoring}
             error={error}
@@ -580,6 +592,7 @@ const AppContent: React.FC = () => {
             onOpenSettings={() => navigateTo("settings")}
             onOpenBackup={() => navigateTo("backup")}
             onOpenAbout={() => navigateTo("about")}
+            onOpenArcade={() => navigateTo("arcade")}
             onDepositChanged={fetchUnclaimedDeposits}
           />
         );
@@ -588,6 +601,13 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <AboutPage onBack={() => navigateTo("wallet")} />
+          </Suspense>
+        );
+
+      case "arcade":
+        return (
+          <Suspense fallback={<AtariLoading />}>
+            <ArcadePage onBack={() => navigateTo("wallet")} />
           </Suspense>
         );
 

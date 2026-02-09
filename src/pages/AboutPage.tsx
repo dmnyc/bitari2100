@@ -24,7 +24,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full relative overflow-hidden">
+    <div className="flex flex-col h-[100dvh] relative overflow-hidden">
       <SpaceScene starsOnly />
       <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10">
         <button
