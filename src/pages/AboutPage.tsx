@@ -1,25 +1,46 @@
-import React from 'react';
-import { CartridgeLabel } from '../components/atari/CartridgeLabel';
+import React, { useEffect, useRef } from "react";
+import { CartridgeLabel } from "../components/atari/CartridgeLabel";
+import { MuteButton } from "../components/atari/MuteButton";
+import { SpaceScene } from "../components/atari/SpaceScene";
+import { playJourney } from "../services/tiaSoundService";
 
 interface AboutPageProps {
   onBack: () => void;
 }
 
-const NOSTR_PROFILE_URL = 'https://zap.cooking/user/npub1aeh2zw4elewy5682lxc6xnlqzjnxksq303gwu2npfaxd49vmde6qcq4nwx';
+const NOSTR_PROFILE_URL = "https://nostree.me/daniel";
 
 const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
+  const stopRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    // Stop any previous instance before starting a new one
+    stopRef.current?.();
+    const stop = playJourney();
+    stopRef.current = stop;
+    return () => {
+      stop();
+      stopRef.current = null;
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-full">
-      <div className="flex items-center gap-2 p-3 border-b-2 border-dashed border-atari-darkgray">
-        <button onClick={onBack} className="font-pixel text-base text-atari-midgray hover:text-atari-orange">
-          {'<'} BACK
+    <div className="flex flex-col h-full relative overflow-hidden">
+      <SpaceScene starsOnly />
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10">
+        <button
+          onClick={onBack}
+          className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
+        >
+          {"<"}
+          <span className="hidden sm:inline"> BACK</span>
         </button>
-        <span className="font-pixel text-lg text-atari-bright uppercase tracking-wider">
+        <span className="flex-1 text-center font-pixel text-sm sm:text-lg text-atari-bright uppercase tracking-wider">
           ABOUT
         </span>
+        <MuteButton />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8 relative z-10">
         <CartridgeLabel />
 
         <div className="pixel-border p-4 max-w-xs w-full space-y-4">
@@ -31,7 +52,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               href={NOSTR_PROFILE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-pixel text-lg text-atari-orange hover:text-atari-orange-lit"
+              className="font-pixel text-lg text-atari-blue-sky hover:text-atari-orange-lit"
             >
               @daniel
             </a>
@@ -55,7 +76,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               VERSION
             </div>
             <div className="font-pixel text-base text-atari-lightgray">
-              {import.meta.env.PACKAGE_VERSION || '0.1.0'}
+              {import.meta.env.PACKAGE_VERSION || "0.1.0"}
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useWallet } from "../contexts/WalletContext";
+import { MuteButton } from "../components/atari/MuteButton";
 import type { DepositInfo, Fee } from "@breeztech/breez-sdk-spark";
 import { LoadingSpinner } from "../components/ui";
 import { AtariButton } from "../components/atari/AtariButton";
@@ -71,16 +72,18 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div className="flex items-center gap-2 p-3 border-b-2 border-dashed border-atari-darkgray">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
         <button
           onClick={onBack}
-          className="font-pixel text-base text-atari-midgray hover:text-atari-orange"
+          className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
         >
-          {"<"} BACK
+          {"<"}
+          <span className="hidden sm:inline"> BACK</span>
         </button>
-        <span className="font-pixel text-lg text-atari-bright uppercase tracking-wider">
+        <span className="flex-1 text-center font-pixel text-sm sm:text-lg text-atari-bright uppercase tracking-wider">
           GET REFUND
         </span>
+        <MuteButton />
       </div>
 
       <div className="p-4 max-w-lg mx-auto w-full">

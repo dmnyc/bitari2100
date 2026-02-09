@@ -1,3 +1,5 @@
+import { playToggle } from "../../services/tiaSoundService";
+
 interface AtariSwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -8,17 +10,22 @@ interface AtariSwitchProps {
  * Toggle switch styled like retro console difficulty switches.
  */
 export function AtariSwitch({ checked, onChange, label }: AtariSwitchProps) {
+  const handleChange = () => {
+    playToggle();
+    onChange(!checked);
+  };
+
   return (
     <div
       className="atari-switch"
-      onClick={() => onChange(!checked)}
+      onClick={handleChange}
       role="switch"
       aria-checked={checked}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onChange(!checked);
+          handleChange();
         }
       }}
     >

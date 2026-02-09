@@ -1,12 +1,12 @@
-import React from 'react';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import React from "react";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import {
   FormError,
-  PrimaryButton,
   BottomSheetContainer,
   BottomSheetCard,
   DialogHeader,
-} from '../../components/ui';
+} from "../../components/ui";
+import { AtariButton } from "../../components/atari/AtariButton";
 
 interface AmountPanelProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ interface AmountPanelProps {
 }
 
 const formatWithSpaces = (num: number): string => {
-  return num.toLocaleString('en-US').replace(/,/g, '\u2009');
+  return num.toLocaleString("en-US").replace(/,/g, "\u2009");
 };
 
 const QUICK_AMOUNTS = [100, 1000, 10000, 100000];
@@ -42,21 +42,15 @@ const AmountPanel: React.FC<AmountPanelProps> = ({
   return (
     <BottomSheetContainer isOpen={isOpen} onClose={onClose} showBackdrop>
       <BottomSheetCard>
-        <DialogHeader
-          title="Create Invoice"
-          onClose={onClose}
-          icon={
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z" />
-            </svg>
-          }
-        />
+        <DialogHeader title="CREATE INVOICE" onClose={onClose} />
 
-        {/* Amount Input */}
         <div className="space-y-4">
+          {/* Amount Input */}
           <div>
-            <label className="block text-spark-text-secondary text-lg font-medium mb-2">Amount</label>
-            <div className="flex items-center bg-spark-dark border border-spark-border rounded-xl overflow-hidden focus-within:border-spark-primary focus-within:ring-2 focus-within:ring-spark-primary/20 transition-all">
+            <div className="font-pixel text-sm text-atari-midgray mb-2">
+              AMOUNT
+            </div>
+            <div className="flex items-center pixel-border overflow-hidden">
               <input
                 type="number"
                 min={limits.min}
@@ -65,28 +59,28 @@ const AmountPanel: React.FC<AmountPanelProps> = ({
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
                 disabled={isLoading}
-                className="flex-1 bg-transparent px-4 py-3 text-spark-text-primary text-lg font-mono placeholder-spark-text-muted focus:outline-none"
+                className="flex-1 bg-transparent px-3 py-3 font-pixel text-base text-atari-bright placeholder-atari-darkgray focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 data-testid="invoice-amount-input"
               />
-              <span className="px-4 py-3 text-spark-text-muted font-medium text-lg">sats</span>
+              <span className="px-3 py-3 font-pixel text-xs text-atari-midgray">
+                SATS
+              </span>
             </div>
           </div>
 
           {/* Quick amount buttons */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {QUICK_AMOUNTS.map((quickAmount) => (
               <button
                 key={quickAmount}
                 type="button"
                 onClick={() => setAmount(quickAmount.toString())}
                 disabled={isLoading}
-                className={`
-                  flex-1 py-2 rounded-lg text-lg font-mono font-medium transition-all
-                  ${amount === quickAmount.toString()
-                    ? 'bg-spark-primary text-black'
-                    : 'bg-spark-elevated border border-spark-border text-spark-text-secondary hover:text-spark-text-primary hover:border-spark-border-light'
-                  }
-                `}
+                className={`font-pixel text-xs px-3 py-2 border-3 ${
+                  amount === quickAmount.toString()
+                    ? "border-atari-orange text-atari-orange"
+                    : "border-atari-darkgray text-atari-midgray hover:border-atari-lightgray hover:text-atari-lightgray"
+                }`}
               >
                 {formatWithSpaces(quickAmount)}
               </button>
@@ -95,29 +89,30 @@ const AmountPanel: React.FC<AmountPanelProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-spark-text-secondary text-lg font-medium mb-2">Description (optional)</label>
+            <div className="font-pixel text-sm text-atari-midgray mb-2">
+              DESCRIPTION
+            </div>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What's this for?"
+              placeholder="Optional"
               disabled={isLoading}
-              className="w-full bg-spark-dark border border-spark-border rounded-xl px-4 py-3 text-spark-text-primary placeholder-spark-text-muted focus:border-spark-primary focus:ring-2 focus:ring-spark-primary/20 focus:outline-none transition-all"
+              className="atari-input"
             />
           </div>
 
           <FormError error={error} data-testid="invoice-error-message" />
 
-          {/* Generate Button */}
-          <PrimaryButton
+          <AtariButton
+            variant="primary"
+            fullWidth
             onClick={onCreateInvoice}
-            type="submit"
             disabled={isLoading || !amount}
-            className="w-full"
             data-testid="generate-invoice-button"
           >
-            {isLoading ? <LoadingSpinner size="small" /> : 'Generate Invoice'}
-          </PrimaryButton>
+            {isLoading ? <LoadingSpinner size="small" /> : "GENERATE"}
+          </AtariButton>
         </div>
       </BottomSheetCard>
     </BottomSheetContainer>

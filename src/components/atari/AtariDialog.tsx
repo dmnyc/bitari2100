@@ -34,11 +34,11 @@ export function AtariDialog({
   return (
     <div className="atari-overlay" onClick={onClose}>
       <div className="atari-dialog" onClick={(e) => e.stopPropagation()}>
+        <button className="atari-dialog-close" onClick={onClose}>
+          X
+        </button>
         <div className="atari-dialog-header">
           <span className="atari-dialog-title">{title}</span>
-          <button className="atari-dialog-close" onClick={onClose}>
-            [X]
-          </button>
         </div>
         <div className="atari-dialog-body">{children}</div>
       </div>

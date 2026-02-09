@@ -1,58 +1,71 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { AtariButton } from "../components/atari/AtariButton";
 import { CartridgeLabel } from "../components/atari/CartridgeLabel";
+import { MuteButton } from "../components/atari/MuteButton";
+import { SpaceScene } from "../components/atari/SpaceScene";
+import { playIntroLoop } from "../services/tiaSoundService";
 
 interface HomePageProps {
   onRestoreWallet: () => void;
   onCreateNewWallet: () => void;
 }
 
-/** Starfield positions for background decoration */
-const STARS = Array.from({ length: 24 }, () => ({
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  delay: Math.random() * 3,
-}));
-
 const HomePage: React.FC<HomePageProps> = ({
   onRestoreWallet,
   onCreateNewWallet,
 }) => {
-  const [showButtons, setShowButtons] = useState(false);
+  const [started, setStarted] = useState(false);
+  const stopIntroRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowButtons(true), 800);
-    return () => clearTimeout(timer);
+  const handlePressStart = useCallback(() => {
+    stopIntroRef.current = playIntroLoop();
+    setStarted(true);
+  }, []);
+
+  const stopMusic = useCallback(() => {
+    if (stopIntroRef.current) {
+      stopIntroRef.current();
+      stopIntroRef.current = null;
+    }
   }, []);
 
   return (
-    <div className="min-h-full flex flex-col items-center justify-center relative overflow-hidden p-4">
-      {/* Starfield background */}
-      {STARS.map((star, i) => (
-        <div
-          key={i}
-          className="absolute w-[2px] h-[2px] bg-atari-midgray"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            animation: `star-twinkle 2s steps(3) infinite`,
-            animationDelay: `${star.delay}s`,
-          }}
-        />
-      ))}
+    <div className="min-h-full flex flex-col items-center relative overflow-y-auto p-4">
+      {/* Mute button — top right */}
+      <div className="absolute top-3 right-3 z-10">
+        <MuteButton />
+      </div>
+
+      {/* Animated space background */}
+      <SpaceScene />
+
+      {/* Push content to vertical center — min-h clears the mute toggle */}
+      <div className="flex-[2] min-h-[76px]" />
 
       {/* Cartridge label / logo */}
-      <div className="mb-12">
+      <div className="mb-8">
         <CartridgeLabel />
       </div>
 
-      {/* CTA Buttons */}
-      {showButtons && (
+      {/* PRESS START or wallet buttons */}
+      {!started ? (
+        <div className="w-full max-w-xs">
+          <button
+            onClick={handlePressStart}
+            className="press-start-btn w-full font-pixel text-lg tracking-widest text-atari-black py-4 px-8 pixel-border"
+          >
+            PRESS TO START
+          </button>
+        </div>
+      ) : (
         <div className="w-full max-w-xs space-y-4 animate-pixel-fade">
           <AtariButton
             variant="primary"
             fullWidth
-            onClick={onCreateNewWallet}
+            onClick={() => {
+              stopMusic();
+              onCreateNewWallet();
+            }}
             data-testid="create-wallet-button"
           >
             NEW WALLET
@@ -61,7 +74,10 @@ const HomePage: React.FC<HomePageProps> = ({
           <AtariButton
             variant="secondary"
             fullWidth
-            onClick={onRestoreWallet}
+            onClick={() => {
+              stopMusic();
+              onRestoreWallet();
+            }}
             data-testid="restore-wallet-button"
           >
             RESTORE
@@ -69,10 +85,11 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       )}
 
-      {/* Footer */}
-      <div className="absolute bottom-6 text-center space-y-2">
+      {/* Footer — pushed to bottom */}
+      <div className="flex-[5] min-h-[24px]" />
+      <div className="text-center space-y-2 pb-2 mt-6">
         <a
-          href="https://zap.cooking/user/npub1aeh2zw4elewy5682lxc6xnlqzjnxksq303gwu2npfaxd49vmde6qcq4nwx"
+          href="https://nostree.me/daniel"
           target="_blank"
           rel="noopener noreferrer"
           className="font-pixel text-base text-atari-midgray hover:text-atari-orange tracking-wider block"

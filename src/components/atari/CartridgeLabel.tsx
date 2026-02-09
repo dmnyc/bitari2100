@@ -10,7 +10,7 @@ export function CartridgeLabel() {
         <BitcoinPixelArt />
       </div>
       <div className="font-pixel text-base text-atari-midgray tracking-[4px] mb-3">
-        VIDEO COMPUTER SYSTEM
+        COMPUTER SPACE MONEY
       </div>
       <div className="font-atari text-3xl text-atari-orange tracking-wider leading-relaxed">
         BITARI
@@ -26,32 +26,53 @@ export function CartridgeLabel() {
 }
 
 /**
- * 18x18 pixel art Bitcoin "B" rendered as a grid of colored divs.
- * Orange (#ac5030) on black, authentic retro look.
+ * 18x18 pixel art Bitcoin "B" with chrome/rainbow row banding.
+ * Each row gets a different ANSI color for a metallic gradient effect.
  */
 function BitcoinPixelArt() {
-  // 18x18 bitmap: 1 = orange pixel, 0 = transparent
-  // Bitcoin "₿" symbol
   // prettier-ignore
   const bitmap = [
-    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0, // row 0: vertical strokes
-    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0, // row 1: vertical strokes
-    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0, // row 2: top bar (narrow)
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0, // row 3: top bar (wide)
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 4: top opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 5: top opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 6: top opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 7: top opening
-    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0, // row 8: middle bar (narrow)
-    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0, // row 9: middle bar (narrow)
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 10: bottom opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 11: bottom opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 12: bottom opening
-    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0, // row 13: bottom opening
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0, // row 14: bottom bar (wide)
-    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0, // row 15: bottom bar (narrow)
-    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0, // row 16: vertical strokes
-    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0, // row 17: vertical strokes
+    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,
+  ];
+
+  // Chrome effect: white top, grays through first hole, black above middle bar
+  // prettier-ignore
+  const rowColors = [
+    "#ececec", // 0  Serif - bright white
+    "#dcdcdc", // 1  Serif - off-white
+    "#c8c8c8", // 2  Top bar - light gray
+    "#b0b0b0", // 3  Top bar - gray
+    "#909090", // 4  First hole - mid gray
+    "#6c6c6c", // 5  First hole - darker gray
+    "#404040", // 6  First hole - dark gray
+    "#000000", // 7  First hole - BLACK (line above separator)
+    "#ac5030", // 8  Middle bar - orange (color starts)
+    "#c06848", // 9  Middle bar - light orange
+    "#d4884c", // 10 Second hole - warm gold
+    "#c06848", // 11 Second hole - light orange
+    "#ac5030", // 12 Second hole - orange
+    "#985c28", // 13 Second hole - medium brown
+    "#844414", // 14 Bottom bar - dark wood
+    "#702800", // 15 Bottom bar - deep brown
+    "#442800", // 16 Serif - very dark
+    "#442800", // 17 Serif - very dark
   ];
 
   return (
@@ -63,16 +84,19 @@ function BitcoinPixelArt() {
         gap: "0px",
       }}
     >
-      {bitmap.map((pixel, i) => (
-        <div
-          key={i}
-          style={{
-            width: "6px",
-            height: "6px",
-            background: pixel ? "#ac5030" : "transparent",
-          }}
-        />
-      ))}
+      {bitmap.map((pixel, i) => {
+        const row = Math.floor(i / 18);
+        return (
+          <div
+            key={i}
+            style={{
+              width: "6px",
+              height: "6px",
+              background: pixel ? rowColors[row] : "transparent",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }

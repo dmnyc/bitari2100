@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { AtariButton } from './atari/AtariButton';
-import { PixelBorder } from './atari/PixelBorder';
+import { useState, useEffect } from "react";
+import { AtariButton } from "./atari/AtariButton";
+import { PixelBorder } from "./atari/PixelBorder";
 
 /**
  * Notification permission prompt in Atari style.
@@ -10,7 +10,7 @@ export default function NotificationPrompt() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
+    if ("Notification" in window && Notification.permission === "default") {
       // Delay showing prompt
       const timer = setTimeout(() => setShow(true), 5000);
       return () => clearTimeout(timer);
@@ -29,12 +29,12 @@ export default function NotificationPrompt() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-40 flex justify-center">
-      <PixelBorder variant="orange" className="max-w-md w-full p-3">
-        <div className="font-pixel text-base text-atari-lightgray mb-3">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+      <PixelBorder variant="orange" className="max-w-sm w-full p-4">
+        <div className="font-pixel text-sm sm:text-base text-atari-lightgray mb-4 text-center">
           ENABLE NOTIFICATIONS TO GET ALERTS WHEN PAYMENTS ARRIVE
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center">
           <AtariButton variant="primary" onClick={handleAllow}>
             ALLOW
           </AtariButton>

@@ -51,7 +51,7 @@ export const SimpleAlert: React.FC<SimpleAlertProps> = ({
           onClick={onDismiss}
           className="font-pixel text-base opacity-60 hover:opacity-100"
         >
-          [X]
+          X
         </button>
       )}
     </div>

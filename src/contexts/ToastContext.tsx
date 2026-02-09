@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import ToastNotification, { ToastType } from '../components/ToastNotification';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import ToastNotification, { ToastType } from "../components/ToastNotification";
+import { playToast } from "../services/tiaSoundService";
 
 interface Toast {
   id: number;
@@ -13,30 +14,36 @@ interface ToastContextType {
 }
 
 const ToastContext = createContext<ToastContextType>({
-  showToast: () => { },
+  showToast: () => {},
 });
 
 export const useToast = () => useContext(ToastContext);
 
 let toastIdCounter = 0;
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((type: ToastType, message: string, detail?: string) => {
-    const id = toastIdCounter++;
-    setToasts(prevToasts => [...prevToasts, { id, type, message, detail }]);
-  }, []);
+  const showToast = useCallback(
+    (type: ToastType, message: string, detail?: string) => {
+      const id = toastIdCounter++;
+      playToast();
+      setToasts((prevToasts) => [...prevToasts, { id, type, message, detail }]);
+    },
+    [],
+  );
 
   const removeToast = useCallback((id: number) => {
-    setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
+    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className="toast-container">
-        {toasts.map(toast => (
+        {toasts.map((toast) => (
           <ToastNotification
             key={toast.id}
             type={toast.type}

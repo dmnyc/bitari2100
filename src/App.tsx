@@ -7,6 +7,12 @@ import React, {
   Suspense,
 } from "react";
 import {
+  playNavigate,
+  playUnmute,
+  isMuted,
+  setMuted,
+} from "./services/tiaSoundService";
+import {
   Config,
   GetInfoResponse,
   Network,
@@ -24,6 +30,7 @@ import NotificationPrompt from "./components/NotificationPrompt";
 import InstallPrompt from "./components/InstallPrompt";
 import StagingGate from "./components/StagingGate";
 import { ToastProvider, useToast } from "./contexts/ToastContext";
+import { AudioProvider } from "./contexts/AudioContext";
 import AppShell from "./components/layout/AppShell";
 import { hideSplash } from "./main";
 
@@ -47,20 +54,83 @@ import {
   showDepositClaimedNotification,
 } from "./services/notificationService";
 
+// --- URL routing ---
+type Screen =
+  | "home"
+  | "restore"
+  | "generate"
+  | "wallet"
+  | "getRefund"
+  | "settings"
+  | "backup"
+  | "fiatCurrencies"
+  | "about";
+
+const SCREEN_PATHS: Record<Screen, string> = {
+  home: "/",
+  restore: "/restore",
+  generate: "/generate",
+  wallet: "/wallet",
+  getRefund: "/refund",
+  settings: "/settings",
+  backup: "/backup",
+  fiatCurrencies: "/currencies",
+  about: "/about",
+};
+
+const PATH_TO_SCREEN: Record<string, Screen> = Object.fromEntries(
+  Object.entries(SCREEN_PATHS).map(([s, p]) => [p, s as Screen]),
+) as Record<string, Screen>;
+
 // Main App without toast functionality
 const AppContent: React.FC = () => {
   // Screen navigation state
-  const [currentScreen, setCurrentScreen] = useState<
-    | "home"
-    | "restore"
-    | "generate"
-    | "wallet"
-    | "getRefund"
-    | "settings"
-    | "backup"
-    | "fiatCurrencies"
-    | "about"
-  >("home");
+  const [currentScreen, setCurrentScreen] = useState<Screen>("home");
+
+  /** Navigate to a screen, pushing a history entry. */
+  const navigateTo = useCallback((screen: Screen) => {
+    setCurrentScreen(screen);
+    const path = SCREEN_PATHS[screen];
+    if (window.location.pathname !== path) {
+      window.history.pushState({ screen }, "", path);
+    }
+  }, []);
+
+  /** Navigate without pushing history (for internal redirects). */
+  const navigateSilent = useCallback((screen: Screen) => {
+    setCurrentScreen(screen);
+    const path = SCREEN_PATHS[screen];
+    if (window.location.pathname !== path) {
+      window.history.replaceState({ screen }, "", path);
+    }
+  }, []);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const screen =
+        e.state?.screen ?? PATH_TO_SCREEN[window.location.pathname] ?? "home";
+      setCurrentScreen(screen);
+    };
+    window.addEventListener("popstate", handlePopState);
+    // Replace initial entry so it has state
+    window.history.replaceState(
+      { screen: currentScreen },
+      "",
+      SCREEN_PATHS[currentScreen],
+    );
+    return () => window.removeEventListener("popstate", handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
+  }, []);
+
+  const isFirstRenderRef = useRef(true);
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+    playNavigate();
+  }, [currentScreen]);
 
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -237,16 +307,28 @@ const AppContent: React.FC = () => {
         try {
           setIsLoading(true);
           await connectWallet(savedMnemonic, false);
-          setCurrentScreen("wallet");
+          // Restore screen from URL if it's an authenticated page, else default to wallet
+          const urlScreen = PATH_TO_SCREEN[window.location.pathname];
+          const authScreens: Screen[] = [
+            "wallet",
+            "settings",
+            "backup",
+            "fiatCurrencies",
+            "about",
+            "getRefund",
+          ];
+          const target =
+            urlScreen && authScreens.includes(urlScreen) ? urlScreen : "wallet";
+          navigateSilent(target);
         } catch (error) {
           console.error("Failed to connect with saved mnemonic:", error);
           setError("Failed to connect with saved mnemonic. Please try again.");
           wallet.clearMnemonic();
-          setCurrentScreen("home");
+          navigateSilent("home");
           setIsLoading(false);
         }
       } else {
-        setCurrentScreen("home");
+        navigateSilent("home");
         setIsLoading(false);
       }
 
@@ -347,7 +429,7 @@ const AppContent: React.FC = () => {
 
       setIsConnected(true);
       await fetchUnclaimedDeposits();
-      setCurrentScreen("wallet");
+      navigateSilent("wallet");
       setIsLoading(false);
     } catch (error) {
       console.error("Error connecting wallet:", error);
@@ -375,7 +457,7 @@ const AppContent: React.FC = () => {
       setTransactions([]);
       setConfig(null);
 
-      setCurrentScreen("home");
+      navigateSilent("home");
 
       showToast("success", "LOGGED OUT");
     } catch (error) {
@@ -387,9 +469,9 @@ const AppContent: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, showToast]);
 
-  const navigateToRestore = () => setCurrentScreen("restore");
-  const navigateToGenerate = () => setCurrentScreen("generate");
-  const navigateToHome = () => setCurrentScreen("home");
+  const navigateToRestore = () => navigateTo("restore");
+  const navigateToGenerate = () => navigateTo("generate");
+  const navigateToHome = () => navigateTo("home");
   const clearError = () => setError(null);
 
   // Atari-themed loading screen
@@ -421,7 +503,7 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <GetRefundPage
-              onBack={() => setCurrentScreen("wallet")}
+              onBack={() => navigateTo("wallet")}
               animationDirection={refundAnimationDirection}
             />
           </Suspense>
@@ -431,9 +513,9 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <SettingsPage
-              onBack={() => setCurrentScreen("wallet")}
+              onBack={() => navigateTo("wallet")}
               config={config}
-              onOpenFiatCurrencies={() => setCurrentScreen("fiatCurrencies")}
+              onOpenFiatCurrencies={() => navigateTo("fiatCurrencies")}
             />
           </Suspense>
         );
@@ -441,14 +523,14 @@ const AppContent: React.FC = () => {
       case "fiatCurrencies":
         return (
           <Suspense fallback={<AtariLoading />}>
-            <FiatCurrenciesPage onBack={() => setCurrentScreen("settings")} />
+            <FiatCurrenciesPage onBack={() => navigateTo("settings")} />
           </Suspense>
         );
 
       case "backup":
         return (
           <Suspense fallback={<AtariLoading />}>
-            <BackupPage onBack={() => setCurrentScreen("wallet")} />
+            <BackupPage onBack={() => navigateTo("wallet")} />
           </Suspense>
         );
 
@@ -493,11 +575,11 @@ const AppContent: React.FC = () => {
               setRefundAnimationDirection(
                 source === "icon" ? "vertical" : "horizontal",
               );
-              setCurrentScreen("getRefund");
+              navigateTo("getRefund");
             }}
-            onOpenSettings={() => setCurrentScreen("settings")}
-            onOpenBackup={() => setCurrentScreen("backup")}
-            onOpenAbout={() => setCurrentScreen("about")}
+            onOpenSettings={() => navigateTo("settings")}
+            onOpenBackup={() => navigateTo("backup")}
+            onOpenAbout={() => navigateTo("about")}
             onDepositChanged={fetchUnclaimedDeposits}
           />
         );
@@ -505,7 +587,7 @@ const AppContent: React.FC = () => {
       case "about":
         return (
           <Suspense fallback={<AtariLoading />}>
-            <AboutPage onBack={() => setCurrentScreen("wallet")} />
+            <AboutPage onBack={() => navigateTo("wallet")} />
           </Suspense>
         );
 
@@ -518,8 +600,17 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const [muted, setMutedState] = useState(isMuted);
+
+  const handleToggleMute = useCallback(() => {
+    const next = !isMuted();
+    setMuted(next);
+    setMutedState(next);
+    if (!next) playUnmute();
+  }, []);
+
   return (
-    <>
+    <AudioProvider value={{ muted, toggleMute: handleToggleMute }}>
       {renderCurrentScreen()}
       {celebrationAmount !== null && (
         <PaymentReceivedCelebration
@@ -529,7 +620,7 @@ const AppContent: React.FC = () => {
       )}
       {isConnected && <NotificationPrompt />}
       <InstallPrompt />
-    </>
+    </AudioProvider>
   );
 };
 

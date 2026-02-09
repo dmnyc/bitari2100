@@ -1,6 +1,12 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode, MouseEvent } from "react";
+import { playClick } from "../../services/tiaSoundService";
 
-type AtariButtonVariant = 'primary' | 'send' | 'receive' | 'secondary' | 'danger';
+type AtariButtonVariant =
+  | "primary"
+  | "send"
+  | "receive"
+  | "secondary"
+  | "danger";
 
 interface AtariButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: AtariButtonVariant;
@@ -9,23 +15,30 @@ interface AtariButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<AtariButtonVariant, string> = {
-  primary:   'atari-btn-primary',
-  send:      'atari-btn-send',
-  receive:   'atari-btn-receive',
-  secondary: 'atari-btn-secondary',
-  danger:    'atari-btn-danger',
+  primary: "atari-btn-primary",
+  send: "atari-btn-send",
+  receive: "atari-btn-receive",
+  secondary: "atari-btn-secondary",
+  danger: "atari-btn-danger",
 };
 
 export function AtariButton({
-  variant = 'primary',
+  variant = "primary",
   children,
   fullWidth = false,
-  className = '',
+  className = "",
+  onClick,
   ...props
 }: AtariButtonProps) {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    playClick();
+    onClick?.(e);
+  };
+
   return (
     <button
-      className={`atari-btn ${variantClasses[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
+      className={`atari-btn ${variantClasses[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      onClick={handleClick}
       {...props}
     >
       {children}

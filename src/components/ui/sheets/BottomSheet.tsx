@@ -16,6 +16,7 @@ export const BottomSheetContainer: React.FC<BottomSheetContainerProps> = ({
   children,
   isOpen,
   onClose,
+  fullHeight,
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -29,6 +30,16 @@ export const BottomSheetContainer: React.FC<BottomSheetContainerProps> = ({
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  if (fullHeight) {
+    return (
+      <div className="fixed inset-0 z-60 bg-black" onClick={onClose}>
+        <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="atari-overlay" onClick={onClose}>

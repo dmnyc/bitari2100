@@ -12,7 +12,7 @@ interface ExtendedNotificationOptions extends NotificationOptions {
   actions?: Array<{ action: string; title: string }>;
 }
 
-const NOTIFICATION_SETTINGS_KEY = 'notification_settings_v1';
+const NOTIFICATION_SETTINGS_KEY = "notification_settings_v1";
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -28,11 +28,7 @@ const defaultSettings: NotificationSettings = {
  * Check if the browser supports notifications
  */
 export function isNotificationSupported(): boolean {
-  // Disable notifications in production
-  if (import.meta.env.PROD) {
-    return false;
-  }
-  return 'Notification' in window && 'serviceWorker' in navigator;
+  return "Notification" in window && "serviceWorker" in navigator;
 }
 
 /**
@@ -40,7 +36,7 @@ export function isNotificationSupported(): boolean {
  */
 export function getNotificationPermission(): NotificationPermission {
   if (!isNotificationSupported()) {
-    return 'denied';
+    return "denied";
   }
   return Notification.permission;
 }
@@ -50,14 +46,14 @@ export function getNotificationPermission(): NotificationPermission {
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!isNotificationSupported()) {
-    console.warn('Notifications not supported in this browser');
-    return 'denied';
+    console.warn("Notifications not supported in this browser");
+    return "denied";
   }
 
   try {
     const permission = await Notification.requestPermission();
 
-    if (permission === 'granted') {
+    if (permission === "granted") {
       // Update settings to enabled when permission is granted
       const settings = getNotificationSettings();
       settings.enabled = true;
@@ -66,8 +62,8 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
     return permission;
   } catch (error) {
-    console.error('Failed to request notification permission:', error);
-    return 'denied';
+    console.error("Failed to request notification permission:", error);
+    return "denied";
   }
 }
 
@@ -81,8 +77,14 @@ export function getNotificationSettings(): NotificationSettings {
 
     const parsed = JSON.parse(raw) as Partial<NotificationSettings>;
     return {
-      enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : defaultSettings.enabled,
-      paymentReceived: typeof parsed.paymentReceived === 'boolean' ? parsed.paymentReceived : defaultSettings.paymentReceived,
+      enabled:
+        typeof parsed.enabled === "boolean"
+          ? parsed.enabled
+          : defaultSettings.enabled,
+      paymentReceived:
+        typeof parsed.paymentReceived === "boolean"
+          ? parsed.paymentReceived
+          : defaultSettings.paymentReceived,
     };
   } catch {
     return { ...defaultSettings };
@@ -101,7 +103,7 @@ export function saveNotificationSettings(settings: NotificationSettings): void {
  */
 export function canShowNotifications(): boolean {
   if (!isNotificationSupported()) return false;
-  if (Notification.permission !== 'granted') return false;
+  if (Notification.permission !== "granted") return false;
 
   const settings = getNotificationSettings();
   return settings.enabled;
@@ -119,7 +121,7 @@ function formatSats(amount: number): string {
  */
 export async function showPaymentReceivedNotification(
   amountSats: number,
-  description?: string
+  description?: string,
 ): Promise<void> {
   const settings = getNotificationSettings();
 
@@ -130,7 +132,7 @@ export async function showPaymentReceivedNotification(
   // Check if app is in foreground - skip notification if visible and focused
   // visibilityState is 'hidden' when minimized or screen off
   // hasFocus() is false when user switched to another app/window
-  if (document.visibilityState === 'visible' && document.hasFocus()) {
+  if (document.visibilityState === "visible" && document.hasFocus()) {
     return;
   }
 
@@ -141,24 +143,24 @@ export async function showPaymentReceivedNotification(
       body: description
         ? `+${formatSats(amountSats)} sats\n${description}`
         : `+${formatSats(amountSats)} sats`,
-      icon: '/icons/Glow-icon-192.png',
-      badge: '/icons/Glow-icon-192.png',
-      tag: 'payment-received',
+      icon: "/icons/Glow-icon-192.png",
+      badge: "/icons/Glow-icon-192.png",
+      tag: "payment-received",
       renotify: true,
       vibrate: [200, 100, 200],
       data: {
-        type: 'payment_received',
+        type: "payment_received",
         amount: amountSats,
       },
       actions: [
-        { action: 'open', title: 'Open Glow' },
-        { action: 'dismiss', title: 'Dismiss' },
+        { action: "open", title: "Open Glow" },
+        { action: "dismiss", title: "Dismiss" },
       ],
     };
 
-    await registration.showNotification('Payment Received', options);
+    await registration.showNotification("Payment Received", options);
   } catch (error) {
-    console.error('Failed to show payment notification:', error);
+    console.error("Failed to show payment notification:", error);
   }
 }
 
@@ -166,14 +168,14 @@ export async function showPaymentReceivedNotification(
  * Show a deposit claimed notification
  */
 export async function showDepositClaimedNotification(
-  count: number
+  count: number,
 ): Promise<void> {
   if (!canShowNotifications()) {
     return;
   }
 
   // Check if app is in foreground - skip notification if visible and focused
-  if (document.visibilityState === 'visible' && document.hasFocus()) {
+  if (document.visibilityState === "visible" && document.hasFocus()) {
     return;
   }
 
@@ -181,23 +183,22 @@ export async function showDepositClaimedNotification(
     const registration = await navigator.serviceWorker.ready;
 
     const options: ExtendedNotificationOptions = {
-      body: `${count} deposit${count > 1 ? 's' : ''} claimed successfully`,
-      icon: '/icons/Glow-icon-192.png',
-      badge: '/icons/Glow-icon-192.png',
-      tag: 'deposit-claimed',
+      body: `${count} deposit${count > 1 ? "s" : ""} claimed successfully`,
+      icon: "/icons/Glow-icon-192.png",
+      badge: "/icons/Glow-icon-192.png",
+      tag: "deposit-claimed",
       data: {
-        type: 'deposit_claimed',
+        type: "deposit_claimed",
         count,
       },
       actions: [
-        { action: 'open', title: 'Open Glow' },
-        { action: 'dismiss', title: 'Dismiss' },
+        { action: "open", title: "Open Glow" },
+        { action: "dismiss", title: "Dismiss" },
       ],
     };
 
-    await registration.showNotification('Deposits Claimed', options);
+    await registration.showNotification("Deposits Claimed", options);
   } catch (error) {
-    console.error('Failed to show deposit notification:', error);
+    console.error("Failed to show deposit notification:", error);
   }
 }
-

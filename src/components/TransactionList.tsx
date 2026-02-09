@@ -26,10 +26,40 @@ const getDescription = (payment: Payment): string => {
     return "Lightning";
   }
   if (payment.method === "spark") return "Spark";
-  if (payment.method === "deposit") return "BTC Deposit";
-  if (payment.method === "withdraw") return "BTC Withdraw";
-  return "Payment";
+  if (payment.method === "deposit") return "On-Chain";
+  if (payment.method === "withdraw") return "On-Chain";
+  return "";
 };
+
+/** Pixel triangle pointing up (receive) */
+const ReceiveArrow = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 5 4"
+    shapeRendering="crispEdges"
+    className="shrink-0"
+  >
+    <rect x="2" y="0" width="1" height="1" fill="#5c9c5c" />
+    <rect x="1" y="1" width="3" height="1" fill="#5c9c5c" />
+    <rect x="0" y="2" width="5" height="1" fill="#5c9c5c" />
+  </svg>
+);
+
+/** Pixel triangle pointing down (send) */
+const SendArrow = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 5 4"
+    shapeRendering="crispEdges"
+    className="shrink-0"
+  >
+    <rect x="0" y="0" width="5" height="1" fill="#984430" />
+    <rect x="1" y="1" width="3" height="1" fill="#984430" />
+    <rect x="2" y="2" width="1" height="1" fill="#984430" />
+  </svg>
+);
 
 interface TransactionListProps {
   transactions: Payment[];
@@ -88,10 +118,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
         data-testid="transaction-item"
       >
         {/* Type indicator */}
-        <span
-          className={`tx-type ${isReceive ? "tx-type-receive" : "tx-type-send"}`}
-        >
-          {isReceive ? "RCV" : "SND"}
+        <span className="tx-type">
+          {isReceive ? <ReceiveArrow /> : <SendArrow />}
         </span>
 
         {/* Description */}
@@ -100,7 +128,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
         </span>
 
         {/* Time */}
-        <span className="font-pixel text-base text-atari-darkgray w-10 text-right flex-shrink-0">
+        <span className="font-pixel text-xs sm:text-base text-atari-darkgray text-right flex-shrink-0">
           {formatTimeAgo(tx.timestamp)}
         </span>
 
@@ -127,7 +155,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       {pendingApproval.length > 0 && (
         <>
           <div className="px-3 py-2">
-            <span className="font-pixel text-base text-atari-yellow tracking-wider">
+            <span className="font-pixel text-xs sm:text-base text-atari-yellow tracking-wider">
               PENDING
             </span>
           </div>
@@ -139,7 +167,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       {regularPayments.length > 0 && (
         <>
           <div className="px-3 py-2">
-            <span className="font-pixel text-base text-atari-midgray tracking-wider">
+            <span className="font-pixel text-xs sm:text-base text-atari-midgray tracking-wider">
               PAYMENTS
             </span>
           </div>

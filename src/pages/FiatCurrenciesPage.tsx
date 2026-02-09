@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useWallet } from '@/contexts/WalletContext';
-import { getFiatSettings, saveFiatSettings } from '../services/settings';
-import type { FiatCurrency } from '@breeztech/breez-sdk-spark';
-import { LoadingSpinner } from '../components/ui';
+import React, { useEffect, useState } from "react";
+import { useWallet } from "@/contexts/WalletContext";
+import { MuteButton } from "../components/atari/MuteButton";
+import { getFiatSettings, saveFiatSettings } from "../services/settings";
+import type { FiatCurrency } from "@breeztech/breez-sdk-spark";
+import { LoadingSpinner } from "../components/ui";
 
 interface FiatCurrenciesPageProps {
   onBack: () => void;
@@ -23,7 +24,7 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
         const fiatCurrencies = await wallet.listFiatCurrencies();
         setCurrencies(fiatCurrencies);
       } catch (error) {
-        console.error('Failed to load fiat currencies:', error);
+        console.error("Failed to load fiat currencies:", error);
       } finally {
         setIsLoading(false);
       }
@@ -32,9 +33,9 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
   }, [wallet]);
 
   const toggleCurrency = (id: string) => {
-    setSelectedCurrencies(prev => {
+    setSelectedCurrencies((prev) => {
       const next = prev.includes(id)
-        ? prev.filter(c => c !== id)
+        ? prev.filter((c) => c !== id)
         : [...prev, id];
       saveFiatSettings({ selectedCurrencies: next });
       return next;
@@ -43,13 +44,18 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div className="flex items-center gap-2 p-3 border-b-2 border-dashed border-atari-darkgray">
-        <button onClick={onBack} className="font-pixel text-base text-atari-midgray hover:text-atari-orange">
-          {'<'} BACK
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
+        <button
+          onClick={onBack}
+          className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
+        >
+          {"<"}
+          <span className="hidden sm:inline"> BACK</span>
         </button>
-        <span className="font-pixel text-lg text-atari-bright uppercase tracking-wider">
+        <span className="flex-1 text-center font-pixel text-sm sm:text-lg text-atari-bright uppercase tracking-wider">
           CURRENCIES
         </span>
+        <MuteButton />
       </div>
 
       {isLoading ? (
@@ -58,7 +64,7 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto p-3">
-          {currencies.map(currency => {
+          {currencies.map((currency) => {
             const isSelected = selectedCurrencies.includes(currency.id);
             return (
               <button
@@ -68,7 +74,7 @@ const FiatCurrenciesPage: React.FC<FiatCurrenciesPageProps> = ({ onBack }) => {
               >
                 <div className="flex items-center gap-2">
                   <span className="font-pixel text-base text-atari-orange">
-                    [{isSelected ? 'X' : ' '}]
+                    [{isSelected ? "X" : " "}]
                   </span>
                   <span className="font-pixel text-base text-atari-lightgray">
                     {currency.id}

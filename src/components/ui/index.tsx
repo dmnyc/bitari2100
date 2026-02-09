@@ -92,7 +92,7 @@ export const FormLabel: React.FC<{
   className?: string;
 }> = ({ children, className = "" }) => (
   <label
-    className={`block font-pixel text-base text-atari-lightgray mb-2 uppercase tracking-wider ${className}`}
+    className={`block font-pixel text-xs sm:text-base text-atari-lightgray mb-2 uppercase tracking-wider ${className}`}
   >
     {children}
   </label>
@@ -201,18 +201,20 @@ export const DialogHeader: React.FC<{
   children?: ReactNode;
   icon?: ReactNode;
 }> = ({ title, onClose, children, icon }) => (
-  <div className="atari-dialog-header">
-    {icon && <span className="mr-2">{icon}</span>}
-    <span className="atari-dialog-title">{title}</span>
-    <div className="flex items-center gap-2">
-      {children}
-      {onClose && (
-        <button className="atari-dialog-close" onClick={onClose}>
-          [X]
-        </button>
+  <>
+    {onClose && (
+      <button className="atari-dialog-close" onClick={onClose}>
+        X
+      </button>
+    )}
+    <div className="atari-dialog-header">
+      {icon && <span className="mr-2">{icon}</span>}
+      <span className="atari-dialog-title">{title}</span>
+      {children && (
+        <div className="flex items-center gap-2 ml-auto">{children}</div>
       )}
     </div>
-  </div>
+  </>
 );
 
 // ============================================
@@ -271,14 +273,14 @@ export const CollapsibleCodeField: React.FC<{
       {onToggle && (
         <button
           onClick={onToggle}
-          className="font-pixel text-base text-atari-orange"
+          className="font-pixel text-xs sm:text-base text-atari-orange"
         >
-          {isVisible ? "[HIDE]" : "[SHOW]"}
+          {isVisible ? "HIDE" : "SHOW"}
         </button>
       )}
     </div>
     {isVisible && (
-      <div className="pixel-border p-2 font-pixel text-base text-atari-lightgray break-all">
+      <div className="pixel-border p-2 font-pixel text-xs sm:text-base text-atari-lightgray break-all">
         {value}
       </div>
     )}
@@ -297,11 +299,13 @@ export const PaymentInfoRow: React.FC<{
   value: ReactNode;
   className?: string;
 }> = ({ label, value, className = "" }) => (
-  <div className={`flex items-center justify-between py-1 ${className}`}>
-    <span className="font-pixel text-base text-atari-midgray uppercase">
+  <div className={`flex items-center justify-between py-1 gap-2 ${className}`}>
+    <span className="font-pixel text-xs sm:text-base text-atari-midgray uppercase shrink-0">
       {label}
     </span>
-    <span className="font-pixel text-base text-atari-lightgray">{value}</span>
+    <span className="font-pixel text-xs sm:text-base text-atari-lightgray text-right">
+      {value}
+    </span>
   </div>
 );
 
@@ -340,19 +344,57 @@ export const CopyableText: React.FC<{
     });
   };
   return (
-    <div className={className}>
+    <div className={`w-full ${className}`}>
       {label && <FormLabel>{label}</FormLabel>}
       <div
         className="pixel-border p-2 flex items-center gap-2 cursor-pointer"
         onClick={handleCopy}
       >
         <span
-          className={`font-pixel text-base text-atari-lightgray flex-1 ${truncate ? "truncate" : "break-all"}`}
+          className={`font-pixel text-xs sm:text-base text-atari-lightgray flex-1 ${truncate ? "truncate" : "break-all"}`}
         >
           {text}
         </span>
-        <span className="font-pixel text-base text-atari-orange flex-shrink-0">
-          {copied ? "+OK" : "@CP"}
+        <span className="flex-shrink-0">
+          {copied ? (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 7 7"
+              shapeRendering="crispEdges"
+            >
+              <rect x="6" y="0" width="1" height="1" fill="#5c9c5c" />
+              <rect x="5" y="1" width="1" height="1" fill="#5c9c5c" />
+              <rect x="4" y="2" width="1" height="1" fill="#5c9c5c" />
+              <rect x="0" y="3" width="1" height="1" fill="#5c9c5c" />
+              <rect x="3" y="3" width="1" height="1" fill="#5c9c5c" />
+              <rect x="1" y="4" width="1" height="1" fill="#5c9c5c" />
+              <rect x="2" y="5" width="1" height="1" fill="#5c9c5c" />
+            </svg>
+          ) : (
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 7 7"
+              shapeRendering="crispEdges"
+            >
+              {/* Back square (visible parts) */}
+              <rect x="2" y="0" width="5" height="1" fill="#c87020" />
+              <rect x="2" y="1" width="1" height="1" fill="#c87020" />
+              <rect x="6" y="1" width="1" height="1" fill="#c87020" />
+              <rect x="6" y="2" width="1" height="1" fill="#c87020" />
+              <rect x="6" y="3" width="1" height="1" fill="#c87020" />
+              <rect x="2" y="4" width="5" height="1" fill="#c87020" />
+              {/* Front square */}
+              <rect x="0" y="2" width="3" height="1" fill="#c87020" />
+              <rect x="0" y="3" width="1" height="1" fill="#c87020" />
+              <rect x="2" y="3" width="1" height="1" fill="#c87020" />
+              <rect x="0" y="4" width="1" height="1" fill="#c87020" />
+              <rect x="0" y="5" width="1" height="1" fill="#c87020" />
+              <rect x="4" y="5" width="1" height="1" fill="#c87020" />
+              <rect x="0" y="6" width="5" height="1" fill="#c87020" />
+            </svg>
+          )}
         </span>
       </div>
     </div>
@@ -446,7 +488,7 @@ export const Tab: React.FC<{
 }> = ({ children, selected, isActive, onClick, className = "" }) => (
   <button
     onClick={onClick}
-    className={`flex-1 font-pixel text-base py-2 px-3 text-center border-b-2 -mb-[2px] ${
+    className={`flex-1 font-pixel text-xs sm:text-base py-2 px-2 sm:px-3 text-center border-b-2 -mb-[2px] ${
       (selected ?? isActive)
         ? "border-atari-orange text-atari-orange"
         : "border-transparent text-atari-midgray hover:text-atari-lightgray"

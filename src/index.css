@@ -61,20 +61,52 @@ body {
 }
 
 /* ============================================================
-   4:3 VIEWPORT (Desktop)
+   CONSOLE SHELL — single DOM tree, responsive via CSS
+   Mobile: full-screen vertical. Desktop: 4:3 centered + letterbox.
    ============================================================ */
 
-/* 4:3 container that scales proportionally within the viewport */
-.viewport-4x3 {
-    /* Max out at 4:3 that fits the screen */
-    width: min(calc(100vh * 4 / 3), 100vw);
-    height: min(100vh, calc(100vw * 3 / 4));
-    position: relative;
+/* Mobile: fill the screen */
+.atari-console-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
-/* Scrollable content area fills the 4:3 box */
-.viewport-content {
-    height: min(100vh, calc(100vw * 3 / 4));
+.atari-console-viewport {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.atari-console-content {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-y: auto;
+}
+
+/* Desktop: 4:3 centered with black letterboxing */
+@media (min-width: 1024px) {
+    .atari-console-shell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #000000;
+    }
+
+    .atari-console-viewport {
+        width: min(calc(100vh * 4 / 3), 100vw);
+        height: min(100vh, calc(100vw * 3 / 4));
+        position: relative;
+        min-height: auto;
+    }
+
+    .atari-console-content {
+        height: min(100vh, calc(100vw * 3 / 4));
+        min-height: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
 }
 
 /* ============================================================
@@ -87,7 +119,7 @@ body {
     border-radius: 8px;
     overflow: hidden;
     box-shadow:
-        inset 0 0 80px rgba(0, 0, 0, 0.4),
+        inset 0 0 60px rgba(0, 0, 0, 0.2),
         0 0 40px rgba(92, 156, 92, 0.08);
 }
 
@@ -98,8 +130,8 @@ body {
     inset: 0;
     background: repeating-linear-gradient(
         0deg,
-        rgba(0, 0, 0, 0.12) 0px,
-        rgba(0, 0, 0, 0.12) 1px,
+        rgba(0, 0, 0, 0.08) 0px,
+        rgba(0, 0, 0, 0.08) 1px,
         transparent 1px,
         transparent 3px
     );
@@ -114,8 +146,8 @@ body {
     inset: 0;
     background: radial-gradient(
         ellipse at center,
-        transparent 55%,
-        rgba(0, 0, 0, 0.35) 100%
+        transparent 65%,
+        rgba(0, 0, 0, 0.2) 100%
     );
     pointer-events: none;
     z-index: 49;
@@ -131,16 +163,23 @@ body {
     animation: crt-on 0.5s ease-out;
 }
 
-/* Moving scanline bar (subtle) */
+/* Rolling scanline bar — like an old TV with bad vertical hold */
 .crt-scanline-bar::before {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
-    height: 4px;
-    background: rgba(92, 156, 92, 0.04);
-    filter: blur(2px);
-    animation: scanline 8s linear infinite;
+    height: 6px;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(180, 255, 180, 0.06),
+        rgba(180, 255, 180, 0.1),
+        rgba(180, 255, 180, 0.06),
+        transparent
+    );
+    filter: blur(1px);
+    animation: scanline 6s linear infinite;
     pointer-events: none;
     z-index: 48;
 }
@@ -225,14 +264,14 @@ body {
     background: #c06848;
 }
 
-/* Send - Blue */
+/* Send - Brownish Red */
 .atari-btn-send {
-    background: #3840b0;
-    border-color: #505cc0;
+    background: #843020;
+    border-color: #984430;
     color: #d4d4d4;
 }
 .atari-btn-send:hover:not(:disabled) {
-    background: #505cc0;
+    background: #984430;
 }
 
 /* Receive - Green */
@@ -290,7 +329,8 @@ body {
 }
 
 .atari-input::placeholder {
-    color: #404040;
+    color: #333333;
+    font-size: 12px;
 }
 
 .atari-textarea {
@@ -305,6 +345,11 @@ body {
     outline: none;
     resize: vertical;
     caret-color: #ac5030;
+}
+
+.atari-textarea::placeholder {
+    color: #333333;
+    font-size: 12px;
 }
 
 .atari-textarea:focus {
@@ -408,19 +453,11 @@ body {
 }
 
 .tx-type {
-    font-size: 16px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
     flex-shrink: 0;
-}
-
-.tx-type-receive {
-    color: #407c40;
-}
-
-.tx-type-send {
-    color: #3840b0;
 }
 
 .tx-desc {
@@ -455,11 +492,13 @@ body {
     background: rgba(0, 0, 0, 0.85);
     z-index: 60;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
+    padding: 16px;
 }
 
 .atari-dialog {
+    position: relative;
     background: #000000;
     border: 4px double #6c6c6c;
     width: 100%;
@@ -472,8 +511,8 @@ body {
 .atari-dialog-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 16px;
+    padding-right: 48px;
     border-bottom: 3px dashed #404040;
 }
 
@@ -485,17 +524,22 @@ body {
 }
 
 .atari-dialog-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
     font-family: "Press Start 2P", monospace;
-    font-size: 18px;
-    background: none;
-    border: 3px solid #6c6c6c;
-    color: #6c6c6c;
-    padding: 8px 12px;
+    font-size: 12px;
+    background: #6c6c6c;
+    border: 2px solid #909090;
+    color: #000000;
+    padding: 4px 6px;
     cursor: pointer;
+    line-height: 1;
 }
 .atari-dialog-close:hover {
+    background: #b03c3c;
     border-color: #b03c3c;
-    color: #b03c3c;
 }
 
 .atari-dialog-body {
@@ -509,7 +553,7 @@ body {
 .pause-menu {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: #000000;
     z-index: 70;
     display: flex;
     align-items: center;
@@ -742,17 +786,113 @@ body {
         line-height: 36px;
     }
 
+    .score-label {
+        font-size: 14px;
+    }
+
+    .score-fiat {
+        font-size: 14px;
+    }
+
     .atari-btn {
         font-size: 14px;
-        padding: 14px 18px;
+        padding: 12px 16px;
+        min-height: 48px;
+    }
+
+    .atari-input {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+
+    .atari-textarea {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+
+    .pause-menu-content {
+        overflow-y: auto;
+        max-height: 100vh;
+        max-height: 100dvh;
+        padding: 16px;
+    }
+
+    .pause-menu-item {
+        font-size: 14px;
+        padding: 12px 12px;
+    }
+
+    .pause-menu-footer {
+        font-size: 10px;
+        margin-top: 24px;
+    }
+
+    .atari-dialog-header {
+        padding: 10px 12px;
+    }
+
+    .atari-dialog-title {
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+
+    .atari-dialog-close {
+        font-size: 10px;
+        padding: 4px 6px;
+        top: 3px;
+        right: 3px;
+    }
+
+    .atari-dialog-header {
+        padding-right: 40px;
+    }
+
+    .atari-dialog-body {
+        padding: 12px 10px;
+    }
+
+    .qr-container {
+        padding: 8px;
+    }
+
+    .qr-frame {
+        border-width: 3px;
+        padding: 6px;
+    }
+
+    .tx-row {
+        font-size: 10px;
+        padding: 10px 6px;
+        gap: 6px;
+    }
+
+    .tx-type {
+        width: 14px;
+    }
+
+    .tx-amount {
+        font-size: 10px;
+    }
+
+    .celebration-title {
+        font-size: 20px;
+    }
+
+    .celebration-stars {
+        font-size: 16px;
+    }
+
+    .atari-toast {
+        font-size: 12px;
+        padding: 10px 14px;
     }
 
     /* Reduce scanline intensity on small screens for readability */
     .crt-scanlines::after {
         background: repeating-linear-gradient(
             0deg,
-            rgba(0, 0, 0, 0.06) 0px,
-            rgba(0, 0, 0, 0.06) 1px,
+            rgba(0, 0, 0, 0.03) 0px,
+            rgba(0, 0, 0, 0.03) 1px,
             transparent 1px,
             transparent 3px
         );
@@ -760,3 +900,131 @@ body {
 }
 
 /* Desktop TV cabinet handles its own layout via flexbox centering */
+
+/* --- Press Start Button — cycles through Atari colors --- */
+
+.press-start-btn {
+    animation: ansi-cycle 2s steps(16) infinite;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+}
+
+@keyframes ansi-cycle {
+    0% {
+        background-color: #000000;
+        color: #ffffff;
+    }
+    6.25% {
+        background-color: #aa0000;
+        color: #ffffff;
+    }
+    12.5% {
+        background-color: #00aa00;
+        color: #000000;
+    }
+    18.75% {
+        background-color: #aa5500;
+        color: #000000;
+    }
+    25% {
+        background-color: #0000aa;
+        color: #ffffff;
+    }
+    31.25% {
+        background-color: #aa00aa;
+        color: #ffffff;
+    }
+    37.5% {
+        background-color: #00aaaa;
+        color: #000000;
+    }
+    43.75% {
+        background-color: #aaaaaa;
+        color: #000000;
+    }
+    50% {
+        background-color: #555555;
+        color: #ffffff;
+    }
+    56.25% {
+        background-color: #ff5555;
+        color: #000000;
+    }
+    62.5% {
+        background-color: #55ff55;
+        color: #000000;
+    }
+    68.75% {
+        background-color: #ffff55;
+        color: #000000;
+    }
+    75% {
+        background-color: #5555ff;
+        color: #ffffff;
+    }
+    81.25% {
+        background-color: #ff55ff;
+        color: #000000;
+    }
+    87.5% {
+        background-color: #55ffff;
+        color: #000000;
+    }
+    93.75% {
+        background-color: #ffffff;
+        color: #000000;
+    }
+}
+
+/* --- Space Scene Animations --- */
+
+@keyframes star-warp {
+    0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--dx), var(--dy)) scale(3);
+        opacity: 0;
+    }
+}
+
+@keyframes fly-left {
+    0% {
+        transform: translateX(110vw);
+    }
+    100% {
+        transform: translateX(-20vw);
+    }
+}
+
+@keyframes fly-right {
+    0% {
+        transform: translateX(-20vw);
+    }
+    100% {
+        transform: translateX(110vw);
+    }
+}
+
+@keyframes fly-diag-down {
+    0% {
+        transform: translate(-20vw, -20vh);
+    }
+    100% {
+        transform: translate(110vw, 110vh);
+    }
+}
+
+@keyframes fly-diag-up {
+    0% {
+        transform: translate(110vw, 110vh);
+    }
+    100% {
+        transform: translate(-20vw, -20vh);
+    }
+}

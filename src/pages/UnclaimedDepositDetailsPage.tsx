@@ -1,5 +1,6 @@
 import React from "react";
 import type { DepositInfo } from "@breeztech/breez-sdk-spark";
+import { MuteButton } from "../components/atari/MuteButton";
 import { formatWithCommas } from "../utils/formatNumber";
 import { AtariButton } from "../components/atari/AtariButton";
 
@@ -14,16 +15,18 @@ const UnclaimedDepositDetailsPage: React.FC<
 > = ({ deposit, onBack, onChanged: _onChanged }) => {
   return (
     <div className="fixed inset-0 z-50 bg-atari-black flex flex-col">
-      <div className="flex items-center gap-2 p-3 border-b-2 border-dashed border-atari-darkgray">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
         <button
           onClick={onBack}
-          className="font-pixel text-base text-atari-midgray hover:text-atari-orange"
+          className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
         >
-          {"<"} BACK
+          {"<"}
+          <span className="hidden sm:inline"> BACK</span>
         </button>
-        <span className="font-pixel text-lg text-atari-bright uppercase tracking-wider">
+        <span className="flex-1 text-center font-pixel text-sm sm:text-lg text-atari-bright uppercase tracking-wider">
           DEPOSIT DETAILS
         </span>
+        <MuteButton />
       </div>
 
       <div className="p-4 max-w-lg mx-auto w-full">

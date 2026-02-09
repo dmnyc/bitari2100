@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { AtariButton } from "./atari/AtariButton";
+import {
+  playDanger,
+  playGameOver,
+  playHover,
+  playMenuSelect,
+} from "../services/tiaSoundService";
 
 interface SideMenuProps {
   isOpen: boolean;
@@ -30,6 +36,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
   if (!isOpen) return null;
 
   const handleConfirmLogout = () => {
+    playGameOver();
     setShowLogoutConfirm(false);
     onClose();
     onLogout();
@@ -80,7 +87,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
       : []),
     {
       label: "LOGOUT",
-      onClick: () => setShowLogoutConfirm(true),
+      onClick: () => {
+        playDanger();
+        setShowLogoutConfirm(true);
+      },
       danger: true,
     },
   ];
@@ -88,9 +98,16 @@ const SideMenu: React.FC<SideMenuProps> = ({
   return (
     <div className="pause-menu" onClick={onClose}>
       <div className="pause-menu-content" onClick={(e) => e.stopPropagation()}>
-        <div className="pause-menu-title">BITARI 2100</div>
+        <div className="text-center mb-4 sm:mb-12">
+          <div className="font-atari text-xl sm:text-3xl text-atari-orange tracking-wider leading-relaxed">
+            BITARI
+          </div>
+          <div className="font-atari text-2xl sm:text-4xl text-atari-orange-lit tracking-widest">
+            2100
+          </div>
+        </div>
 
-        <div className="font-pixel text-lg text-atari-midgray mb-8 tracking-wider">
+        <div className="font-pixel text-sm sm:text-lg text-atari-midgray mb-3 sm:mb-8 tracking-wider">
           - - PAUSED - -
         </div>
 
@@ -104,7 +121,15 @@ const SideMenu: React.FC<SideMenuProps> = ({
                 "highlight" in item && item.highlight ? "text-atari-yellow" : ""
               } ${"danger" in item && item.danger ? "text-atari-red" : ""}`}
               onClick={
-                "disabled" in item && item.disabled ? undefined : item.onClick
+                "disabled" in item && item.disabled
+                  ? undefined
+                  : () => {
+                      if (!("danger" in item && item.danger)) playMenuSelect();
+                      item.onClick();
+                    }
+              }
+              onPointerEnter={
+                "disabled" in item && item.disabled ? undefined : playHover
               }
               disabled={"disabled" in item && item.disabled}
             >
@@ -127,16 +152,16 @@ const SideMenu: React.FC<SideMenuProps> = ({
             onClick={() => setShowLogoutConfirm(false)}
           >
             <div
-              className="pixel-border-double p-6 max-w-xs w-full bg-atari-black"
+              className="pixel-border-double p-4 sm:p-8 max-w-sm w-full bg-atari-black"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="font-pixel text-base text-atari-yellow text-center mb-5">
+              <div className="font-pixel text-sm sm:text-lg text-atari-yellow text-center mb-4">
                 ! WARNING !
               </div>
-              <div className="font-pixel text-lg text-atari-lightgray text-center mb-6 leading-relaxed">
+              <div className="font-pixel text-sm sm:text-lg text-atari-lightgray text-center mb-6 leading-relaxed">
                 SAVE YOUR RECOVERY PHRASE BEFORE LOGGING OUT
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <AtariButton
                   variant="secondary"
                   fullWidth

@@ -7,6 +7,7 @@ import type {
 import { getFiatSettings } from "../services/settings";
 import { formatWithThinSpaces } from "../utils/formatNumber";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
+import { MuteButton } from "./atari/MuteButton";
 
 interface CollapsingWalletHeaderProps {
   walletInfo: GetInfoResponse | null;
@@ -102,10 +103,19 @@ const CollapsingWalletHeader: React.FC<CollapsingWalletHeaderProps> = ({
           aria-label="Open menu"
           data-testid="menu-button"
         >
-          [=]
+          <svg
+            width="20"
+            height="16"
+            viewBox="0 0 5 4"
+            shapeRendering="crispEdges"
+          >
+            <rect x="0" y="0" width="5" height="1" fill="#aaaaaa" />
+            <rect x="0" y="1.5" width="5" height="1" fill="#aaaaaa" />
+            <rect x="0" y="3" width="5" height="1" fill="#aaaaaa" />
+          </svg>
         </button>
 
-        <span className="font-pixel text-lg text-atari-orange tracking-widest">
+        <span className="font-pixel text-sm sm:text-lg text-atari-orange tracking-widest">
           BITARI 2100
         </span>
 
@@ -117,10 +127,10 @@ const CollapsingWalletHeader: React.FC<CollapsingWalletHeaderProps> = ({
               title="Rejected deposits need refund"
               aria-label="Get refund for rejected deposits"
             >
-              [!]
+              !
             </button>
           )}
-          {!hasUnclaimedDeposits && <span className="w-8" />}
+          <MuteButton />
         </div>
       </div>
 
@@ -128,11 +138,26 @@ const CollapsingWalletHeader: React.FC<CollapsingWalletHeaderProps> = ({
       {!isCompact ? (
         <div className="score-display pb-3">
           <div className="score-label">SCORE</div>
-          <div className="score-value" data-testid="wallet-balance">
+          <div
+            className="score-value flex items-center justify-center gap-2"
+            data-testid="wallet-balance"
+          >
+            <svg
+              width="24"
+              height="32"
+              viewBox="0 0 6 8"
+              shapeRendering="crispEdges"
+              className="shrink-0"
+            >
+              <rect x="1" y="0" width="4" height="1" fill="#ffff55" />
+              <rect x="1" y="1" width="3" height="1" fill="#ffff55" />
+              <rect x="0" y="2" width="3" height="1" fill="#ffff55" />
+              <rect x="0" y="3" width="5" height="1" fill="#ffff55" />
+              <rect x="2" y="4" width="2" height="1" fill="#ffff55" />
+              <rect x="1" y="5" width="2" height="1" fill="#ffff55" />
+              <rect x="0" y="6" width="2" height="1" fill="#ffff55" />
+            </svg>
             {formatWithThinSpaces(animatedBalance)}
-          </div>
-          <div className="font-pixel text-base text-atari-lightgray mt-2">
-            SATS
           </div>
           {currentFiat && (
             <div className="score-fiat cursor-pointer" onClick={handleFiatTap}>
@@ -152,10 +177,24 @@ const CollapsingWalletHeader: React.FC<CollapsingWalletHeaderProps> = ({
           className="flex items-center justify-center gap-2 py-2"
           data-testid="wallet-balance"
         >
+          <svg
+            width="15"
+            height="20"
+            viewBox="0 0 6 8"
+            shapeRendering="crispEdges"
+            className="shrink-0"
+          >
+            <rect x="1" y="0" width="4" height="1" fill="#ffff55" />
+            <rect x="1" y="1" width="3" height="1" fill="#ffff55" />
+            <rect x="0" y="2" width="3" height="1" fill="#ffff55" />
+            <rect x="0" y="3" width="5" height="1" fill="#ffff55" />
+            <rect x="2" y="4" width="2" height="1" fill="#ffff55" />
+            <rect x="1" y="5" width="2" height="1" fill="#ffff55" />
+            <rect x="0" y="6" width="2" height="1" fill="#ffff55" />
+          </svg>
           <span className="font-pixel text-xl text-atari-bright">
             {formatWithThinSpaces(animatedBalance)}
           </span>
-          <span className="font-pixel text-lg text-atari-midgray">SATS</span>
         </div>
       )}
     </div>

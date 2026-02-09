@@ -1,6 +1,14 @@
-import React, { useState, useRef, useCallback, lazy, Suspense } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  lazy,
+  Suspense,
+} from "react";
 import { useWallet } from "../contexts/WalletContext";
 import { LoadingSpinner } from "../components/ui";
+import { playMenuOpen, playMenuClose } from "../services/tiaSoundService";
 import CollapsingWalletHeader from "../components/CollapsingWalletHeader";
 import SideMenu from "../components/SideMenu";
 import TransactionList from "../components/TransactionList";
@@ -79,6 +87,16 @@ const WalletPage: React.FC<WalletPageProps> = ({
   );
   const [paymentInput, setPaymentInput] = useState<SendInput | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const prevMenuOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isMenuOpen && !prevMenuOpenRef.current) {
+      playMenuOpen();
+    } else if (!isMenuOpen && prevMenuOpenRef.current) {
+      playMenuClose();
+    }
+    prevMenuOpenRef.current = isMenuOpen;
+  }, [isMenuOpen]);
 
   const transactionsContainerRef = useRef<HTMLDivElement>(null);
   const dialogStateRef = useRef({
@@ -187,7 +205,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full relative overflow-hidden">
+    <div className="flex flex-col h-[100dvh] relative overflow-hidden">
       {/* Restoration overlay */}
       {isRestoring && (
         <div className="absolute inset-0 bg-atari-black z-50 flex items-center justify-center">
@@ -231,6 +249,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
             onClose={handleSendDialogClose}
             initialPaymentInput={paymentInput}
             onScanQr={handleScanFromSendDialog}
+            balanceSats={walletInfo?.balanceSats || 0}
           />
         </Suspense>
       )}
@@ -274,30 +293,75 @@ const WalletPage: React.FC<WalletPageProps> = ({
       )}
 
       {/* Bottom action bar - Atari style */}
-      <div className="flex items-center justify-center gap-4 p-4 border-t-3 border-dashed border-atari-darkgray bg-atari-black z-30">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-3 border-t-3 border-dashed border-atari-darkgray bg-atari-black z-30">
         <button
           onClick={() => setIsSendDialogOpen(true)}
-          className="atari-btn atari-btn-send flex-1"
+          className="atari-btn atari-btn-send flex-1 flex items-center justify-center gap-1 sm:gap-2"
           data-testid="send-button"
+          aria-label="Send"
         >
-          SEND
+          <svg
+            className="w-[14px] h-[8px] sm:w-[21px] sm:h-[12px] shrink-0"
+            viewBox="0 0 7 4"
+            shapeRendering="crispEdges"
+          >
+            <rect x="3" y="0" width="1" height="1" fill="#d4d4d4" />
+            <rect x="2" y="1" width="3" height="1" fill="#d4d4d4" />
+            <rect x="1" y="2" width="5" height="1" fill="#d4d4d4" />
+            <rect x="0" y="3" width="7" height="1" fill="#d4d4d4" />
+          </svg>
+          <span className="hidden sm:inline">SEND</span>
         </button>
 
         <button
           onClick={() => setIsQrScannerOpen(true)}
-          className="atari-btn atari-btn-secondary"
+          className="atari-btn atari-btn-secondary !p-2 sm:!p-4"
           aria-label="Scan QR Code"
           data-testid="scan-button"
         >
-          [#]
+          <svg
+            className="w-[18px] h-[18px] sm:w-[24px] sm:h-[24px] shrink-0"
+            viewBox="0 0 7 7"
+            shapeRendering="crispEdges"
+          >
+            <rect x="0" y="0" width="3" height="1" fill="#d4d4d4" />
+            <rect x="0" y="1" width="1" height="1" fill="#d4d4d4" />
+            <rect x="2" y="1" width="1" height="1" fill="#d4d4d4" />
+            <rect x="0" y="2" width="3" height="1" fill="#d4d4d4" />
+            <rect x="4" y="0" width="3" height="1" fill="#d4d4d4" />
+            <rect x="4" y="1" width="1" height="1" fill="#d4d4d4" />
+            <rect x="6" y="1" width="1" height="1" fill="#d4d4d4" />
+            <rect x="4" y="2" width="3" height="1" fill="#d4d4d4" />
+            <rect x="3" y="3" width="1" height="1" fill="#d4d4d4" />
+            <rect x="0" y="4" width="3" height="1" fill="#d4d4d4" />
+            <rect x="0" y="5" width="1" height="1" fill="#d4d4d4" />
+            <rect x="2" y="5" width="1" height="1" fill="#d4d4d4" />
+            <rect x="0" y="6" width="3" height="1" fill="#d4d4d4" />
+            <rect x="4" y="4" width="1" height="1" fill="#d4d4d4" />
+            <rect x="6" y="4" width="1" height="1" fill="#d4d4d4" />
+            <rect x="5" y="5" width="1" height="1" fill="#d4d4d4" />
+            <rect x="4" y="6" width="1" height="1" fill="#d4d4d4" />
+            <rect x="6" y="6" width="1" height="1" fill="#d4d4d4" />
+          </svg>
         </button>
 
         <button
           onClick={() => setIsReceiveDialogOpen(true)}
-          className="atari-btn atari-btn-receive flex-1"
+          className="atari-btn atari-btn-receive flex-1 flex items-center justify-center gap-1 sm:gap-2"
           data-testid="receive-button"
+          aria-label="Receive"
         >
-          RECEIVE
+          <svg
+            className="w-[14px] h-[8px] sm:w-[21px] sm:h-[12px] shrink-0"
+            viewBox="0 0 7 4"
+            shapeRendering="crispEdges"
+          >
+            <rect x="0" y="0" width="7" height="1" fill="#d4d4d4" />
+            <rect x="1" y="1" width="5" height="1" fill="#d4d4d4" />
+            <rect x="2" y="2" width="3" height="1" fill="#d4d4d4" />
+            <rect x="3" y="3" width="1" height="1" fill="#d4d4d4" />
+          </svg>
+          <span className="hidden sm:inline">RECEIVE</span>
         </button>
       </div>
 
