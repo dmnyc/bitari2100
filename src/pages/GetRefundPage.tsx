@@ -11,7 +11,7 @@ import {
   removeRejectedDeposit,
 } from "../services/depositState";
 import { formatWithCommas } from "../utils/formatNumber";
-import { PixelArrowUp } from "../components/atari/PixelBolt";
+import { PixelBolt } from "../components/atari/PixelBolt";
 
 interface GetRefundPageProps {
   onBack: () => void;
@@ -112,7 +112,7 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
               >
                 <div className="font-pixel text-base text-atari-bright flex items-center gap-1">
                   {formatWithCommas(Number(d.amountSats))}{" "}
-                  <PixelArrowUp size={12} />
+                  <PixelBolt size={12} />
                 </div>
                 <div className="font-pixel text-base text-atari-midgray mt-1 truncate">
                   TX: {d.txid.slice(0, 16)}...
@@ -124,7 +124,7 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
           <div>
             <div className="font-pixel text-base text-atari-lightgray mb-3 flex items-center gap-1">
               REFUND {formatWithCommas(Number(selectedDeposit.amountSats))}{" "}
-              <PixelArrowUp size={12} />
+              <PixelBolt size={12} />
             </div>
             <AtariInput
               label="BITCOIN ADDRESS"

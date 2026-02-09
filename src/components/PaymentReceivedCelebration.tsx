@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { playCelebration } from "../services/tiaSoundService";
-import { PixelArrowDown } from "./atari/PixelBolt";
+import { PixelBolt } from "./atari/PixelBolt";
 
 interface PaymentReceivedCelebrationProps {
   amount: number;
@@ -40,7 +40,7 @@ export default function PaymentReceivedCelebration({
         }}
       >
         +
-        <PixelArrowDown size={24} />
+        <PixelBolt size={24} />
         {amount.toLocaleString()}
       </div>
       <div className="celebration-stars">* * * * * * * * * * * *</div>

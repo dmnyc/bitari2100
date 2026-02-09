@@ -15,7 +15,7 @@ import {
   setMuted,
 } from "./services/tiaSoundService";
 import { SpaceScene } from "./components/atari/SpaceScene";
-import { PixelArrowUp } from "./components/atari/PixelBolt";
+import { PixelBolt } from "./components/atari/PixelBolt";
 import {
   Config,
   GetInfoResponse,
@@ -256,7 +256,7 @@ const AppContent: React.FC = () => {
               "success",
               "PAYMENT SENT",
               <span className="flex items-center gap-1">
-                <PixelArrowUp size={10} />
+                <PixelBolt size={10} />
                 {Number(event.payment.amount).toLocaleString()} TRANSMITTED
               </span>,
             );

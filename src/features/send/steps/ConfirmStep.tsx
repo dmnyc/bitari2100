@@ -7,7 +7,7 @@ import {
 import { SimpleFeeBreakdown } from "../../../components/FeeBreakdownCard";
 import { SpinnerIcon } from "../../../components/Icons";
 import { formatWithSpaces } from "../../../utils/formatNumber";
-import { PixelArrowUp } from "../../../components/atari/PixelBolt";
+import { PixelBolt } from "../../../components/atari/PixelBolt";
 
 export interface ConfirmStepProps {
   amountSats: bigint | null;
@@ -36,7 +36,7 @@ const ConfirmStep: React.FC<ConfirmStepProps> = ({
       <div className="text-center py-4">
         <p className="text-spark-text-muted text-lg mb-2">You're sending</p>
         <div className="flex items-center justify-center gap-2">
-          <PixelArrowUp size={24} />
+          <PixelBolt size={24} />
           <span className="font-pixel text-2xl sm:text-3xl text-atari-bright">
             {formatWithSpaces(total)}
           </span>

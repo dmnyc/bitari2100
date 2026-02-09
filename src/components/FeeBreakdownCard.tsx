@@ -1,6 +1,6 @@
 import React from "react";
 import { formatWithSpaces } from "../utils/formatNumber";
-import { PixelArrowUp } from "./atari/PixelBolt";
+import { PixelBolt } from "./atari/PixelBolt";
 
 /**
  * Reusable component for displaying payment fee breakdowns.
@@ -52,7 +52,7 @@ export const FeeBreakdownCard: React.FC<FeeBreakdownCardProps> = ({
             <span
               className={`font-mono text-lg ${item.highlight ? "font-bold text-spark-primary" : "text-spark-text-primary"}`}
             >
-              <PixelArrowUp size={12} className="mr-1" />
+              <PixelBolt size={12} className="mr-1" />
               {formatWithSpaces(item.value)}
             </span>
           </div>

@@ -3,7 +3,7 @@ import type { DepositInfo } from "@breeztech/breez-sdk-spark";
 import { MuteButton } from "../components/atari/MuteButton";
 import { formatWithCommas } from "../utils/formatNumber";
 import { AtariButton } from "../components/atari/AtariButton";
-import { PixelArrowDown } from "../components/atari/PixelBolt";
+import { PixelBolt } from "../components/atari/PixelBolt";
 
 interface UnclaimedDepositDetailsPageProps {
   deposit: DepositInfo;
@@ -38,7 +38,7 @@ const UnclaimedDepositDetailsPage: React.FC<
             </span>
             <div className="font-pixel text-lg text-atari-bright flex items-center gap-1">
               {formatWithCommas(Number(deposit.amountSats))}{" "}
-              <PixelArrowDown size={14} />
+              <PixelBolt size={14} />
             </div>
           </div>
           <div>
