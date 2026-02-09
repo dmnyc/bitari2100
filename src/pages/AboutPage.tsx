@@ -79,6 +79,19 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               {import.meta.env.PACKAGE_VERSION || "0.1.0"}
             </div>
           </div>
+
+          <div className="border-t border-dashed border-atari-darkgray" />
+
+          <div className="text-center">
+            <a
+              href="https://github.com/dmnyc/bitari2100/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-pixel text-base text-atari-blue-sky hover:text-atari-orange-lit"
+            >
+              BUGS / FEATURES
+            </a>
+          </div>
         </div>
       </div>
     </div>
