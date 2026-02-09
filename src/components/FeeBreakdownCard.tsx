@@ -1,5 +1,6 @@
-import React from 'react';
-import { formatWithSpaces } from '../utils/formatNumber';
+import React from "react";
+import { formatWithSpaces } from "../utils/formatNumber";
+import { PixelArrowUp } from "./atari/PixelBolt";
 
 /**
  * Reusable component for displaying payment fee breakdowns.
@@ -33,19 +34,26 @@ export interface FeeBreakdownCardProps {
  */
 export const FeeBreakdownCard: React.FC<FeeBreakdownCardProps> = ({
   items,
-  className = '',
+  className = "",
 }) => {
   return (
-    <div className={`bg-spark-dark/50 border border-spark-border rounded-2xl p-4 space-y-3 ${className}`}>
+    <div
+      className={`bg-spark-dark/50 border border-spark-border rounded-2xl p-4 space-y-3 ${className}`}
+    >
       {items.map((item, index) => (
         <React.Fragment key={item.label}>
           {index > 0 && <div className="border-t border-spark-border/50" />}
           <div className="flex justify-between items-center">
-            <span className={`text-lg ${item.highlight ? 'text-spark-text-primary font-semibold' : 'text-spark-text-secondary'}`}>
+            <span
+              className={`text-lg ${item.highlight ? "text-spark-text-primary font-semibold" : "text-spark-text-secondary"}`}
+            >
               {item.label}
             </span>
-            <span className={`font-mono text-lg ${item.highlight ? 'font-bold text-spark-primary' : 'text-spark-text-primary'}`}>
-              {formatWithSpaces(item.value)} {item.unit ?? 'sats'}
+            <span
+              className={`font-mono text-lg ${item.highlight ? "font-bold text-spark-primary" : "text-spark-text-primary"}`}
+            >
+              <PixelArrowUp size={12} className="mr-1" />
+              {formatWithSpaces(item.value)}
             </span>
           </div>
         </React.Fragment>
@@ -70,9 +78,9 @@ export interface SimpleFeeBreakdownProps {
 export const SimpleFeeBreakdown: React.FC<SimpleFeeBreakdownProps> = ({
   amount,
   fee,
-  amountLabel = 'Amount',
-  feeLabel = 'Network fee',
-  className = '',
+  amountLabel = "Amount",
+  feeLabel = "Network fee",
+  className = "",
 }) => {
   const total = Number(amount) + Number(fee);
 
@@ -82,7 +90,7 @@ export const SimpleFeeBreakdown: React.FC<SimpleFeeBreakdownProps> = ({
       items={[
         { label: amountLabel, value: amount },
         { label: feeLabel, value: fee },
-        { label: 'Total', value: total, highlight: true },
+        { label: "Total", value: total, highlight: true },
       ]}
     />
   );

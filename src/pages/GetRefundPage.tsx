@@ -11,6 +11,7 @@ import {
   removeRejectedDeposit,
 } from "../services/depositState";
 import { formatWithCommas } from "../utils/formatNumber";
+import { PixelArrowUp } from "../components/atari/PixelBolt";
 
 interface GetRefundPageProps {
   onBack: () => void;
@@ -72,7 +73,7 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col h-[100dvh]">
-      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray safe-top">
         <button
           onClick={onBack}
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
@@ -109,8 +110,9 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
                 }}
                 className="w-full pixel-border p-3 mb-2 text-left hover:border-atari-orange"
               >
-                <div className="font-pixel text-base text-atari-bright">
-                  {formatWithCommas(Number(d.amountSats))} SATS
+                <div className="font-pixel text-base text-atari-bright flex items-center gap-1">
+                  {formatWithCommas(Number(d.amountSats))}{" "}
+                  <PixelArrowUp size={12} />
                 </div>
                 <div className="font-pixel text-base text-atari-midgray mt-1 truncate">
                   TX: {d.txid.slice(0, 16)}...
@@ -120,8 +122,9 @@ const GetRefundPage: React.FC<GetRefundPageProps> = ({ onBack }) => {
           </div>
         ) : refundStep === "address" ? (
           <div>
-            <div className="font-pixel text-base text-atari-lightgray mb-3">
-              REFUND {formatWithCommas(Number(selectedDeposit.amountSats))} SATS
+            <div className="font-pixel text-base text-atari-lightgray mb-3 flex items-center gap-1">
+              REFUND {formatWithCommas(Number(selectedDeposit.amountSats))}{" "}
+              <PixelArrowUp size={12} />
             </div>
             <AtariInput
               label="BITCOIN ADDRESS"

@@ -3,6 +3,7 @@ import type { DepositInfo } from "@breeztech/breez-sdk-spark";
 import { MuteButton } from "../components/atari/MuteButton";
 import { formatWithCommas } from "../utils/formatNumber";
 import { AtariButton } from "../components/atari/AtariButton";
+import { PixelArrowDown } from "../components/atari/PixelBolt";
 
 interface UnclaimedDepositDetailsPageProps {
   deposit: DepositInfo;
@@ -15,7 +16,7 @@ const UnclaimedDepositDetailsPage: React.FC<
 > = ({ deposit, onBack, onChanged: _onChanged }) => {
   return (
     <div className="fixed inset-0 z-50 bg-atari-black flex flex-col">
-      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray safe-top">
         <button
           onClick={onBack}
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
@@ -35,8 +36,9 @@ const UnclaimedDepositDetailsPage: React.FC<
             <span className="font-pixel text-base text-atari-midgray">
               AMOUNT
             </span>
-            <div className="font-pixel text-lg text-atari-bright">
-              {formatWithCommas(Number(deposit.amountSats))} SATS
+            <div className="font-pixel text-lg text-atari-bright flex items-center gap-1">
+              {formatWithCommas(Number(deposit.amountSats))}{" "}
+              <PixelArrowDown size={14} />
             </div>
           </div>
           <div>

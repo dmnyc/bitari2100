@@ -26,7 +26,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-[100dvh] relative">
       <SpaceScene starsOnly />
-      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10 shrink-0">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10 shrink-0 safe-top">
         <button
           onClick={onBack}
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"

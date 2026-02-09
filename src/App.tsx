@@ -254,7 +254,7 @@ const AppContent: React.FC = () => {
             showToast(
               "success",
               "PAYMENT SENT",
-              `${event.payment.amount} SATS TRANSMITTED`,
+              `${event.payment.amount} TRANSMITTED`,
             );
           }
         }

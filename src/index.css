@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- iOS PWA safe area utilities --- */
+.safe-top {
+    padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* ============================================================
    BITARI 2100 - Retro Console Design System
    ============================================================ */
@@ -687,6 +695,7 @@ body {
     font-size: 24px;
     color: #a0a034;
     letter-spacing: 6px;
+    white-space: nowrap;
     animation: star-twinkle 0.8s steps(3) infinite;
 }
 

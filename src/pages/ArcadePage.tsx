@@ -146,7 +146,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-[100dvh] bg-atari-black">
       {/* Header */}
-      <div className="p-3 border-b-2 border-dashed border-atari-darkgray flex items-center">
+      <div className="p-3 border-b-2 border-dashed border-atari-darkgray flex items-center safe-top">
         <button
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
           onClick={() => {

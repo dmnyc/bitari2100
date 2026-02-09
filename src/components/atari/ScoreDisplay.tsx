@@ -1,4 +1,5 @@
-import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
+import { PixelBolt } from "./PixelBolt";
 
 interface ScoreDisplayProps {
   /** Balance in sats */
@@ -13,7 +14,11 @@ interface ScoreDisplayProps {
  * Displays the wallet balance as an Atari game score counter.
  * Rolling digit animation on value changes.
  */
-export function ScoreDisplay({ sats, fiat, compact = false }: ScoreDisplayProps) {
+export function ScoreDisplay({
+  sats,
+  fiat,
+  compact = false,
+}: ScoreDisplayProps) {
   const animatedSats = useAnimatedNumber(sats);
   const formattedSats = animatedSats.toLocaleString();
 
@@ -21,7 +26,7 @@ export function ScoreDisplay({ sats, fiat, compact = false }: ScoreDisplayProps)
     return (
       <div className="score-display py-2">
         <span className="score-value text-lg">{formattedSats}</span>
-        <span className="font-pixel text-base text-atari-midgray ml-2">SATS</span>
+        <PixelBolt size={14} className="ml-2" />
       </div>
     );
   }
@@ -29,8 +34,10 @@ export function ScoreDisplay({ sats, fiat, compact = false }: ScoreDisplayProps)
   return (
     <div className="score-display">
       <div className="score-label">SCORE</div>
-      <div className="score-value">{formattedSats}</div>
-      <div className="font-pixel text-lg text-atari-lightgray mt-1">SATS</div>
+      <div className="flex items-center justify-center gap-2">
+        <div className="score-value">{formattedSats}</div>
+        <PixelBolt size={20} />
+      </div>
       {fiat && <div className="score-fiat">~{fiat}</div>}
     </div>
   );

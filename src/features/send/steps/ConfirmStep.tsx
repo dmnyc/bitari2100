@@ -1,8 +1,13 @@
-import React from 'react';
-import { PrimaryButton, SecondaryButton, FormError } from '../../../components/ui';
-import { SimpleFeeBreakdown } from '../../../components/FeeBreakdownCard';
-import { SpinnerIcon } from '../../../components/Icons';
-import { formatWithSpaces } from '../../../utils/formatNumber';
+import React from "react";
+import {
+  PrimaryButton,
+  SecondaryButton,
+  FormError,
+} from "../../../components/ui";
+import { SimpleFeeBreakdown } from "../../../components/FeeBreakdownCard";
+import { SpinnerIcon } from "../../../components/Icons";
+import { formatWithSpaces } from "../../../utils/formatNumber";
+import { PixelArrowUp } from "../../../components/atari/PixelBolt";
 
 export interface ConfirmStepProps {
   amountSats: bigint | null;
@@ -30,11 +35,11 @@ const ConfirmStep: React.FC<ConfirmStepProps> = ({
       {/* Total amount display */}
       <div className="text-center py-4">
         <p className="text-spark-text-muted text-lg mb-2">You're sending</p>
-        <div className="flex items-baseline justify-center gap-2">
-          <span className="text-4xl font-mono font-bold text-spark-text-primary">
+        <div className="flex items-center justify-center gap-2">
+          <PixelArrowUp size={24} />
+          <span className="font-pixel text-2xl sm:text-3xl text-atari-bright">
             {formatWithSpaces(total)}
           </span>
-          <span className="text-xl text-spark-text-secondary">sats</span>
         </div>
       </div>
 

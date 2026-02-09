@@ -94,7 +94,7 @@ const CollapsingWalletHeader: React.FC<CollapsingWalletHeaderProps> = ({
   if (!walletInfo) return null;
 
   return (
-    <div className="bg-atari-black border-b-2 border-dashed border-atari-darkgray">
+    <div className="bg-atari-black border-b-2 border-dashed border-atari-darkgray safe-top">
       {/* Top bar: menu + warning */}
       <div className="flex items-center justify-between px-3 py-2">
         <button

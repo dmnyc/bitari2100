@@ -20,7 +20,7 @@ export default function PageLayout({
   return (
     <div className="flex flex-col h-[100dvh]">
       {(title || onBack) && (
-        <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
+        <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray safe-top">
           {onBack && (
             <button
               onClick={onBack}

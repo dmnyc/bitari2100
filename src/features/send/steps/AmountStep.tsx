@@ -42,9 +42,7 @@ const AmountStep: React.FC<AmountStepProps> = ({
 
       {/* Amount input */}
       <div>
-        <div className="font-pixel text-sm text-atari-midgray mb-2">
-          AMOUNT (SATS)
-        </div>
+        <div className="font-pixel text-sm text-atari-midgray mb-2">AMOUNT</div>
         <input
           type="number"
           value={localAmount}

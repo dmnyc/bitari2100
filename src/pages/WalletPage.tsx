@@ -299,7 +299,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
       )}
 
       {/* Bottom action bar - Atari style */}
-      <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-3 border-t-3 border-dashed border-atari-darkgray bg-atari-black z-30">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-3 border-t-3 border-dashed border-atari-darkgray bg-atari-black z-30 safe-bottom">
         <button
           onClick={() => {
             playMenuSelect();

@@ -1,6 +1,6 @@
-import React from 'react';
-import { formatWithSpaces } from '../utils/formatNumber';
-import { CheckIcon } from './Icons';
+import React from "react";
+import { formatWithSpaces } from "../utils/formatNumber";
+import { CheckIcon } from "./Icons";
 
 /**
  * Fee rate option for the FeeRateSelector component.
@@ -15,9 +15,9 @@ export interface FeeRateOption {
  * Default fee rate options (slow, medium, fast).
  */
 export const DEFAULT_FEE_RATES: FeeRateOption[] = [
-  { id: 'slow', label: 'Slow', sats: 500 },
-  { id: 'medium', label: 'Medium', sats: 1000 },
-  { id: 'fast', label: 'Fast', sats: 2000 },
+  { id: "slow", label: "Slow", sats: 500 },
+  { id: "medium", label: "Medium", sats: 1000 },
+  { id: "fast", label: "Fast", sats: 2000 },
 ];
 
 export interface FeeRateSelectorProps {
@@ -57,7 +57,7 @@ export const FeeRateSelector: React.FC<FeeRateSelectorProps> = ({
   options = DEFAULT_FEE_RATES,
   selectedId,
   onSelect,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`grid grid-cols-3 gap-2 ${className}`}>
@@ -69,9 +69,10 @@ export const FeeRateSelector: React.FC<FeeRateSelectorProps> = ({
             onClick={() => onSelect(option.id)}
             className={`
               relative p-3 rounded-lg border text-lg font-medium transition-colors
-              ${isSelected
-                ? 'bg-[rgb(var(--primary-blue))] text-white border-[rgb(var(--primary-blue))] ring-2 ring-[rgb(var(--primary-blue))]'
-                : 'bg-[rgb(var(--card-bg))] text-[rgb(var(--text-white))] border-[rgb(var(--card-border))] hover:border-[rgb(var(--primary-blue))]'
+              ${
+                isSelected
+                  ? "bg-[rgb(var(--primary-blue))] text-white border-[rgb(var(--primary-blue))] ring-2 ring-[rgb(var(--primary-blue))]"
+                  : "bg-[rgb(var(--card-bg))] text-[rgb(var(--text-white))] border-[rgb(var(--card-border))] hover:border-[rgb(var(--primary-blue))]"
               }
             `}
           >
@@ -80,7 +81,7 @@ export const FeeRateSelector: React.FC<FeeRateSelectorProps> = ({
             )}
             <div>{option.label}</div>
             <div className="text-base opacity-70">
-              {formatWithSpaces(option.sats)} sats
+              {formatWithSpaces(option.sats)}
             </div>
           </button>
         );
@@ -92,12 +93,14 @@ export const FeeRateSelector: React.FC<FeeRateSelectorProps> = ({
 /**
  * Hook for managing fee rate selection state.
  */
-export function useFeeRateSelection(options: FeeRateOption[] = DEFAULT_FEE_RATES) {
+export function useFeeRateSelection(
+  options: FeeRateOption[] = DEFAULT_FEE_RATES,
+) {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const selectedOption = React.useMemo(
     () => options.find((o) => o.id === selectedId) ?? null,
-    [options, selectedId]
+    [options, selectedId],
   );
 
   const selectedSats = selectedOption?.sats ?? 0;

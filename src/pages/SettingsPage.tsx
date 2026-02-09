@@ -111,7 +111,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
   return (
     <div className="flex flex-col h-[100dvh]">
-      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray safe-top">
         <button
           onClick={onBack}
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"

@@ -31,7 +31,7 @@ const getDescription = (payment: Payment): string => {
   return "";
 };
 
-/** Pixel triangle pointing up (receive) */
+/** Green down-arrow (receive — funds coming in) */
 const ReceiveArrow = () => (
   <svg
     width="12"
@@ -40,13 +40,13 @@ const ReceiveArrow = () => (
     shapeRendering="crispEdges"
     className="shrink-0"
   >
-    <rect x="2" y="0" width="1" height="1" fill="#5c9c5c" />
+    <rect x="0" y="0" width="5" height="1" fill="#5c9c5c" />
     <rect x="1" y="1" width="3" height="1" fill="#5c9c5c" />
-    <rect x="0" y="2" width="5" height="1" fill="#5c9c5c" />
+    <rect x="2" y="2" width="1" height="1" fill="#5c9c5c" />
   </svg>
 );
 
-/** Pixel triangle pointing down (send) */
+/** Red up-arrow (send — funds going out) */
 const SendArrow = () => (
   <svg
     width="12"
@@ -55,9 +55,9 @@ const SendArrow = () => (
     shapeRendering="crispEdges"
     className="shrink-0"
   >
-    <rect x="0" y="0" width="5" height="1" fill="#984430" />
+    <rect x="2" y="0" width="1" height="1" fill="#984430" />
     <rect x="1" y="1" width="3" height="1" fill="#984430" />
-    <rect x="2" y="2" width="1" height="1" fill="#984430" />
+    <rect x="0" y="2" width="5" height="1" fill="#984430" />
   </svg>
 );
 
