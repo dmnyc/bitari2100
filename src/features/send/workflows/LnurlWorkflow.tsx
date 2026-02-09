@@ -11,6 +11,7 @@ import {
   SecondaryButton,
 } from "../../../components/ui";
 import ConfirmStep from "../steps/ConfirmStep";
+import { PixelBolt } from "../../../components/atari/PixelBolt";
 
 interface LnurlWorkflowProps {
   parsed: LnurlPayRequestDetails;
@@ -136,7 +137,8 @@ const LnurlWorkflow: React.FC<LnurlWorkflowProps> = ({
           <label className="block text-lg font-medium text-spark-text-primary">
             Amount
           </label>
-          <span className="text-base text-spark-text-secondary">
+          <span className="text-base text-spark-text-secondary flex items-center gap-1">
+            <PixelBolt size={12} />
             {minSats.toLocaleString("en-US").replace(/,/g, " ")} –{" "}
             {maxSats.toLocaleString("en-US").replace(/,/g, " ")}
           </span>
