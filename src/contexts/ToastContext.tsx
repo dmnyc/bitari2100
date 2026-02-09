@@ -6,11 +6,15 @@ interface Toast {
   id: number;
   type: ToastType;
   message: string;
-  detail?: string;
+  detail?: React.ReactNode;
 }
 
 interface ToastContextType {
-  showToast: (type: ToastType, message: string, detail?: string) => void;
+  showToast: (
+    type: ToastType,
+    message: string,
+    detail?: React.ReactNode,
+  ) => void;
 }
 
 const ToastContext = createContext<ToastContextType>({
@@ -27,7 +31,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = useCallback(
-    (type: ToastType, message: string, detail?: string) => {
+    (type: ToastType, message: string, detail?: React.ReactNode) => {
       const id = toastIdCounter++;
       playToast();
       setToasts((prevToasts) => [...prevToasts, { id, type, message, detail }]);

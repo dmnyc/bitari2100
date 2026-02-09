@@ -5,7 +5,7 @@ export type ToastType = "success" | "error" | "info" | "warning";
 interface ToastNotificationProps {
   type: ToastType;
   message: string;
-  detail?: string;
+  detail?: React.ReactNode;
   onClose: () => void;
   autoClose?: boolean;
   duration?: number;
