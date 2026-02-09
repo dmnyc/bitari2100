@@ -190,6 +190,7 @@ const WalletPage: React.FC<WalletPageProps> = ({
     setIsSendDialogOpen(false);
     setPaymentInput(null);
     setScannerOpenedFromSend(true);
+    playMenuSelect();
     setIsQrScannerOpen(true);
   }, []);
 
@@ -322,7 +323,10 @@ const WalletPage: React.FC<WalletPageProps> = ({
         </button>
 
         <button
-          onClick={() => setIsQrScannerOpen(true)}
+          onClick={() => {
+            playMenuSelect();
+            setIsQrScannerOpen(true);
+          }}
           className="atari-btn atari-btn-secondary !p-2 sm:!p-4"
           aria-label="Scan QR Code"
           data-testid="scan-button"

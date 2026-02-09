@@ -125,7 +125,7 @@ const QrScannerDialog: React.FC<QrScannerDialogProps> = ({
         {/* Gallery picker button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="absolute top-4 right-4 z-20 p-2 border-3 border-atari-midgray bg-black/80 font-pixel text-xs text-atari-midgray"
+          className="absolute top-14 right-2 z-20 p-2 border-3 border-atari-midgray bg-black/80 font-pixel text-xs text-atari-midgray"
           aria-label="Pick image from gallery"
         >
           IMG
