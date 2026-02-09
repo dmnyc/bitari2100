@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useWallet } from "../contexts/WalletContext";
 import { LoadingSpinner } from "../components/ui";
-import { playMenuOpen } from "../services/tiaSoundService";
+import { playMenuOpen, playMenuSelect } from "../services/tiaSoundService";
 import CollapsingWalletHeader from "../components/CollapsingWalletHeader";
 import SideMenu from "../components/SideMenu";
 import TransactionList from "../components/TransactionList";
@@ -300,7 +300,10 @@ const WalletPage: React.FC<WalletPageProps> = ({
       {/* Bottom action bar - Atari style */}
       <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-3 border-t-3 border-dashed border-atari-darkgray bg-atari-black z-30">
         <button
-          onClick={() => setIsSendDialogOpen(true)}
+          onClick={() => {
+            playMenuSelect();
+            setIsSendDialogOpen(true);
+          }}
           className="atari-btn atari-btn-send flex-1 flex items-center justify-center gap-1 sm:gap-2"
           data-testid="send-button"
           aria-label="Send"
@@ -351,7 +354,10 @@ const WalletPage: React.FC<WalletPageProps> = ({
         </button>
 
         <button
-          onClick={() => setIsReceiveDialogOpen(true)}
+          onClick={() => {
+            playMenuSelect();
+            setIsReceiveDialogOpen(true);
+          }}
           className="atari-btn atari-btn-receive flex-1 flex items-center justify-center gap-1 sm:gap-2"
           data-testid="receive-button"
           aria-label="Receive"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { MuteButton } from "../components/atari/MuteButton";
+import { MnemonicGrid } from "../components/atari/MnemonicGrid";
 import { AtariButton } from "../components/atari/AtariButton";
 import { playSendSuccess } from "../services/tiaSoundService";
 
@@ -13,6 +14,7 @@ const BackupPage: React.FC<BackupPageProps> = ({ onBack }) => {
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [animDone, setAnimDone] = useState(false);
 
   useEffect(() => {
     setMnemonic(wallet.getSavedMnemonic());
@@ -60,26 +62,21 @@ const BackupPage: React.FC<BackupPageProps> = ({ onBack }) => {
           </div>
         ) : (
           <>
-            <div className="pixel-border p-3 mb-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {words.map((word, index) => (
-                  <div key={index} className="flex items-center gap-1 py-1">
-                    <span className="font-pixel text-base text-atari-midgray w-5 text-right">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-pixel text-base text-atari-bright uppercase">
-                      {word}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="mb-4">
+              <MnemonicGrid
+                words={words}
+                animate
+                onAnimationDone={() => setAnimDone(true)}
+              />
             </div>
 
-            <div className="flex justify-center">
-              <AtariButton variant="secondary" onClick={handleCopy}>
-                {copied ? "+ COPIED" : "@ COPY"}
-              </AtariButton>
-            </div>
+            {animDone && (
+              <div className="flex justify-center">
+                <AtariButton variant="secondary" onClick={handleCopy}>
+                  {copied ? "+ COPIED" : "@ COPY"}
+                </AtariButton>
+              </div>
+            )}
           </>
         )}
       </div>
