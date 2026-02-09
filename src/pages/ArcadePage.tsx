@@ -411,12 +411,7 @@ function DonateGate({
 
       {/* Zap from wallet (only if sufficient balance) */}
       {hasWallet && hasBalance && (
-        <AtariButton
-          variant="primary"
-          fullWidth
-          onClick={onZap}
-          disabled={isZapping}
-        >
+        <AtariButton variant="primary" onClick={onZap} disabled={isZapping}>
           {isZapping ? "ZAPPING..." : "ZAP 21 SATS"}
         </AtariButton>
       )}
@@ -434,7 +429,7 @@ function DonateGate({
               <div className="font-pixel text-xs text-atari-midgray mb-1">
                 {hasBalance ? "OR SCAN TO PAY" : "SCAN TO PAY"}
               </div>
-              <QRCodeContainer value={invoice} size={180} />
+              <QRCodeContainer value={invoice} size={280} />
               <div className="font-pixel text-xs text-atari-darkgray text-center mt-1">
                 WAITING FOR PAYMENT...
               </div>
@@ -445,12 +440,9 @@ function DonateGate({
 
       {/* Free play */}
       {!hasFreePlayed ? (
-        <button
-          className="font-pixel text-xs text-atari-darkgray hover:text-atari-midgray mt-4"
-          onClick={onFreePlay}
-        >
+        <AtariButton variant="secondary" onClick={onFreePlay}>
           PLAY FREE (1 SESSION)
-        </button>
+        </AtariButton>
       ) : (
         <div className="font-pixel text-xs text-atari-darkgray mt-4">
           FREE PLAY USED — ZAP TO PLAY
