@@ -296,7 +296,7 @@ const ReceivePaymentDialog: React.FC<ReceivePaymentDialogProps> = ({
   const getQRTitle = () => {
     switch (activeTab) {
       case "lightning":
-        return "LN Invoice";
+        return "Lightning Invoice";
       case "spark":
         return "Spark Address";
       case "bitcoin":
