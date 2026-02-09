@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { AtariButton } from './atari/AtariButton';
-import { PixelBorder } from './atari/PixelBorder';
+import { useState, useEffect, useRef } from "react";
+import { AtariButton } from "./atari/AtariButton";
+import { PixelBorder } from "./atari/PixelBorder";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 /**
@@ -20,8 +20,8 @@ export default function InstallPrompt() {
       deferredPromptRef.current = e as BeforeInstallPromptEvent;
       setShow(true);
     };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const handleInstall = async () => {
@@ -41,7 +41,7 @@ export default function InstallPrompt() {
         <div className="font-pixel text-base text-atari-lightgray mb-3">
           INSTALL BITARI 2100 FOR THE FULL EXPERIENCE
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center">
           <AtariButton variant="primary" onClick={handleInstall}>
             INSTALL
           </AtariButton>
