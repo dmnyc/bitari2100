@@ -30,7 +30,7 @@ const HomePage: React.FC<HomePageProps> = ({
   }, []);
 
   return (
-    <div className="min-h-full flex flex-col items-center relative overflow-y-auto p-4">
+    <div className="h-[100dvh] flex flex-col items-center relative overflow-y-auto p-4">
       {/* Mute button — top right */}
       <div className="absolute top-3 right-3 z-10">
         <MuteButton />

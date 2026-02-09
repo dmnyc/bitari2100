@@ -4,6 +4,7 @@ import React, {
   InputHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
+import { playClick } from "../../services/tiaSoundService";
 
 // ============================================
 // RE-EXPORTS
@@ -203,7 +204,13 @@ export const DialogHeader: React.FC<{
 }> = ({ title, onClose, children, icon }) => (
   <>
     {onClose && (
-      <button className="atari-dialog-close" onClick={onClose}>
+      <button
+        className="atari-dialog-close"
+        onClick={() => {
+          playClick();
+          onClose();
+        }}
+      >
         X
       </button>
     )}

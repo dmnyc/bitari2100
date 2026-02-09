@@ -542,6 +542,15 @@ export function playDanger() {
   playNoise(0.25, 0.15, t + 0.35);
 }
 
+/** Classic arcade coin-insert ding */
+export function playCoin() {
+  if (_muted) return;
+  const ac = getCtx();
+  const t = ac.currentTime;
+  playTone(1319, 0.08, 0.16, t); // E6
+  playTone(1568, 0.12, 0.18, t + 0.08); // G6
+}
+
 /** Ascending fanfare for wallet create/restore success */
 export function playWalletReady() {
   if (_muted) return;

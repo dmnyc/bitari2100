@@ -4,6 +4,7 @@ import { MuteButton } from "../components/atari/MuteButton";
 import { getSettings, saveSettings } from "../services/settings";
 import type { Config, Network } from "@breeztech/breez-sdk-spark";
 import { useWallet } from "@/contexts/WalletContext";
+import { playCoin } from "../services/tiaSoundService";
 import {
   isNotificationSupported,
   getNotificationPermission,
@@ -252,6 +253,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   setNotificationPermission(perm);
                   if (perm !== "granted") return;
                 }
+                if (checked) playCoin();
                 setNotificationEnabled(checked);
                 saveNotificationSettings({
                   enabled: checked,

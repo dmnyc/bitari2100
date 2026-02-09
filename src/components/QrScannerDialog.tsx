@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import QrScanner from "qr-scanner";
 import { useQrScanner } from "../hooks/useQrScanner";
-import { playQrScan } from "../services/tiaSoundService";
+import { playQrScan, playClick } from "../services/tiaSoundService";
 import { AtariButton } from "./atari/AtariButton";
 
 interface QrScannerDialogProps {
@@ -111,7 +111,10 @@ const QrScannerDialog: React.FC<QrScannerDialogProps> = ({
 
         {/* Close button */}
         <button
-          onClick={handleClose}
+          onClick={() => {
+            playClick();
+            handleClose();
+          }}
           className="atari-dialog-close"
           style={{ top: 8, right: 8 }}
           aria-label="Close scanner"

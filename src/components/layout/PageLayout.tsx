@@ -18,7 +18,7 @@ export default function PageLayout({
   onBack,
 }: PageLayoutProps) {
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col h-[100dvh]">
       {(title || onBack) && (
         <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray">
           {onBack && (
@@ -38,7 +38,7 @@ export default function PageLayout({
           <MuteButton />
         </div>
       )}
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }

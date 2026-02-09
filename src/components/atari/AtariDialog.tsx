@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from "react";
+import { playClick } from "../../services/tiaSoundService";
 
 interface AtariDialogProps {
   open: boolean;
@@ -34,7 +35,13 @@ export function AtariDialog({
   return (
     <div className="atari-overlay" onClick={onClose}>
       <div className="atari-dialog" onClick={(e) => e.stopPropagation()}>
-        <button className="atari-dialog-close" onClick={onClose}>
+        <button
+          className="atari-dialog-close"
+          onClick={() => {
+            playClick();
+            onClose();
+          }}
+        >
           X
         </button>
         <div className="atari-dialog-header">

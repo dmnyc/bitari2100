@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useWallet } from "../contexts/WalletContext";
 import { LoadingSpinner } from "../components/ui";
-import { playMenuOpen, playMenuClose } from "../services/tiaSoundService";
+import { playMenuOpen } from "../services/tiaSoundService";
 import CollapsingWalletHeader from "../components/CollapsingWalletHeader";
 import SideMenu from "../components/SideMenu";
 import TransactionList from "../components/TransactionList";
@@ -96,8 +96,6 @@ const WalletPage: React.FC<WalletPageProps> = ({
   useEffect(() => {
     if (isMenuOpen && !prevMenuOpenRef.current) {
       playMenuOpen();
-    } else if (!isMenuOpen && prevMenuOpenRef.current) {
-      playMenuClose();
     }
     prevMenuOpenRef.current = isMenuOpen;
   }, [isMenuOpen]);

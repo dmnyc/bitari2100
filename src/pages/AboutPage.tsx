@@ -24,9 +24,9 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
   }, []);
 
   return (
-    <div className="flex flex-col h-[100dvh] relative overflow-hidden">
+    <div className="flex flex-col h-[100dvh] relative">
       <SpaceScene starsOnly />
-      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10">
+      <div className="flex items-center p-3 border-b-2 border-dashed border-atari-darkgray relative z-10 shrink-0">
         <button
           onClick={onBack}
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
@@ -40,7 +40,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
         <MuteButton />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8 relative z-10">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6 gap-8 relative z-10">
         <CartridgeLabel />
 
         <div className="pixel-border p-4 max-w-xs w-full space-y-4">

@@ -236,12 +236,16 @@ export function createHashBreaker(
       powerUpIndices.add(idx);
     }
 
+    // Center the brick grid horizontally
+    const gridW = BRICK_COLS * brickW + (BRICK_COLS - 1) * BRICK_GAP;
+    const offsetX = Math.floor((GAME_W - gridW) / 2);
+
     let idx = 0;
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
         const isPowerUp = powerUpIndices.has(idx);
         bricks.push({
-          x: BRICK_GAP + col * (brickW + BRICK_GAP),
+          x: offsetX + col * (brickW + BRICK_GAP),
           y: BRICK_TOP + row * (BRICK_H + BRICK_GAP),
           w: brickW,
           h: BRICK_H,

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AtariButton } from "./atari/AtariButton";
 import {
+  playClick,
   playDanger,
   playGameOver,
   playHover,
@@ -101,6 +102,16 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
   return (
     <div className="pause-menu" onClick={onClose}>
+      <button
+        onClick={() => {
+          playClick();
+          onClose();
+        }}
+        className="atari-dialog-close"
+        style={{ position: "fixed", top: 8, right: 8 }}
+      >
+        X
+      </button>
       <div className="pause-menu-content" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-4 sm:mb-12">
           <div className="font-atari text-xl sm:text-3xl text-atari-orange tracking-wider leading-relaxed">
@@ -147,12 +158,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
           ))}
         </nav>
 
-        <div className="pause-menu-footer">PRESS SELECT TO RESUME</div>
-
         {/* Logout Confirmation */}
         {showLogoutConfirm && (
           <div
-            className="fixed inset-0 bg-black/80 z-80 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black z-80 flex items-center justify-center p-4"
             onClick={() => setShowLogoutConfirm(false)}
           >
             <div
@@ -165,19 +174,14 @@ const SideMenu: React.FC<SideMenuProps> = ({
               <div className="font-pixel text-sm sm:text-lg text-atari-lightgray text-center mb-6 leading-relaxed">
                 SAVE YOUR RECOVERY PHRASE BEFORE LOGGING OUT
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-4 justify-center">
                 <AtariButton
                   variant="secondary"
-                  fullWidth
                   onClick={() => setShowLogoutConfirm(false)}
                 >
                   CANCEL
                 </AtariButton>
-                <AtariButton
-                  variant="danger"
-                  fullWidth
-                  onClick={handleConfirmLogout}
-                >
+                <AtariButton variant="danger" onClick={handleConfirmLogout}>
                   LOGOUT
                 </AtariButton>
               </div>

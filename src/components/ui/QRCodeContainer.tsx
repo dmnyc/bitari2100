@@ -76,15 +76,26 @@ function BitcoinLogoSvg({ size }: { size: number }) {
 
 export const QRCodeContainer: React.FC<QRCodeContainerProps> = ({
   value,
-  size = 200,
+  size = 280,
 }) => {
   const logoSize = Math.round(size * 0.22);
 
   return (
     <div className="qr-container">
       <div className="qr-frame">
-        <div style={{ position: "relative", display: "inline-block" }}>
-          <QRCode value={value} size={size} level="H" />
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+            maxWidth: "100%",
+          }}
+        >
+          <QRCode
+            value={value}
+            size={size}
+            level="H"
+            style={{ width: "100%", height: "auto", maxWidth: size }}
+          />
           <div
             style={{
               position: "absolute",
