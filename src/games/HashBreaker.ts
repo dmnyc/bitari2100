@@ -609,8 +609,7 @@ export function createHashBreaker(
   function drawTitle() {
     const blink = Math.floor(animFrame / 30) % 2 === 0;
 
-    drawText("HASH", GAME_W / 2, 60, C.orange, 16);
-    drawText("OUT", GAME_W / 2, 82, C.orangeHot, 16);
+    drawText("HASH-OUT", GAME_W / 2, 70, C.orange, 16);
 
     // Decorative bricks — rainbow palette
     const colors = [

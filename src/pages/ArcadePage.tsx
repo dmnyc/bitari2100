@@ -78,7 +78,6 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack }) => {
         amountSats: ZAP_AMOUNT,
       });
       await wallet.lnurlPay({ prepareResponse });
-      showToast("success", "Zapped 21 sats! Starting game.");
       playClick();
       setScreen("playing");
     } catch (err) {
@@ -104,9 +103,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack }) => {
   // --- Payment confirmed (from QR invoice) ---
   const handlePaymentConfirmed = useCallback(() => {
     playCelebration();
-    showToast("success", "Payment received! Starting game.");
     setScreen("playing");
-  }, [showToast]);
+  }, []);
 
   // --- Start game ---
   const startPlaying = useCallback((selectedGame: string) => {

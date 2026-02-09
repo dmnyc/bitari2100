@@ -247,7 +247,7 @@ const AppContent: React.FC = () => {
           if (isReceived) {
             setCelebrationAmount(amountSats);
             showPaymentReceivedNotification(amountSats);
-          } else {
+          } else if (currentScreenRef.current !== "arcade") {
             showToast(
               "success",
               "PAYMENT SENT",
