@@ -77,8 +77,8 @@ const PADDLE_H = 6;
 const PADDLE_Y = GAME_H - 20;
 const PADDLE_SPEED = 4;
 const BALL_SIZE = 4;
-const BALL_SPEED_INITIAL = 2.5;
-const BALL_SPEED_INCREMENT = 0.15;
+const BALL_SPEED_INITIAL = 1.2;
+const BALL_SPEED_INCREMENT = 0.25;
 const BRICK_COLS = 10;
 const BRICK_H = 8;
 const BRICK_GAP = 2;
@@ -617,34 +617,64 @@ export function createHashBreaker(
   function drawTitle() {
     const blink = Math.floor(animFrame / 30) % 2 === 0;
 
-    drawText("HASH-OUT", GAME_W / 2, 70, C.orange, 16);
-
-    // Decorative bricks — rainbow palette
-    const colors = [
-      C.red,
-      C.orange,
+    // HASH-OUT title — horizontal banded color stripes (same style as POW-MAN)
+    const titleSize = 28;
+    const titleY = 16;
+    const bandColors = [
+      C.redHot,
+      C.orangeHot,
       C.gold,
-      C.yellow,
-      C.green,
-      C.cyan,
-      C.blue,
-      C.purple,
+      C.yellowBright,
+      C.yellowBright,
+      C.gold,
+      C.orangeHot,
+      C.redHot,
     ];
-    const brickW = 28;
-    const totalW = colors.length * (brickW + 2) - 2;
-    const startX = (GAME_W - totalW) / 2;
-    for (let i = 0; i < colors.length; i++) {
-      ctx.fillStyle = colors[i];
-      ctx.fillRect(startX + i * (brickW + 2), 100, brickW, 8);
+    const totalH = titleSize + 4;
+    const bandH = totalH / bandColors.length;
+    ctx.font = `${titleSize}px "Press Start 2P", monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    for (let i = 0; i < bandColors.length; i++) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, titleY + i * bandH, GAME_W, bandH);
+      ctx.clip();
+      ctx.fillStyle = bandColors[i];
+      ctx.fillText("HASH-OUT", GAME_W / 2, titleY);
+      ctx.restore();
+    }
+    ctx.textBaseline = "alphabetic";
+
+    // Decorative bricks — matches in-game layout (4 rows x 10 cols)
+    const rowColors = [C.red, C.redLit, C.pink, C.orange];
+    const cols = BRICK_COLS;
+    const rows = 4;
+    const bW = Math.floor((GAME_W - (cols + 1) * BRICK_GAP) / cols);
+    const gW = cols * bW + (cols - 1) * BRICK_GAP;
+    const ox = Math.floor((GAME_W - gW) / 2);
+    const oy = 60;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // One gold power-up brick in row 2, col 7 (like the screenshot)
+        const isPow = r === 2 && c === 7;
+        ctx.fillStyle = isPow ? C.goldLit : rowColors[r];
+        ctx.fillRect(
+          ox + c * (bW + BRICK_GAP),
+          oy + r * (BRICK_H + BRICK_GAP),
+          bW,
+          BRICK_H,
+        );
+      }
     }
 
-    drawText("MINE THE BLOCKS", GAME_W / 2, 132, C.bright, 10);
+    drawText("MINE THE BLOCKS", GAME_W / 2, 120, C.bright, 10);
 
     if (blink) {
-      drawText("PRESS START", GAME_W / 2, 170, C.yellow, 10);
+      drawText("PRESS START", GAME_W / 2, 160, C.yellow, 10);
     }
 
-    drawText("SPACE / TAP TO BEGIN", GAME_W / 2, 210, C.midgray, 7);
+    drawText("SPACE OR TAP TO BEGIN", GAME_W / 2, 210, C.midgray, 7);
   }
 
   function drawGameOver() {

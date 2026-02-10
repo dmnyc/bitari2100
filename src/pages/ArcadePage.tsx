@@ -10,7 +10,8 @@ import {
   playNavigate,
   playCelebration,
 } from "../services/tiaSoundService";
-import { createHashBreaker, type GameState } from "../games/HashBreaker";
+import { createHashBreaker } from "../games/HashBreaker";
+import { createPowMan } from "../games/PowMan";
 
 const ZAP_ADDRESS = "bitari2100@breez.tips";
 const ZAP_AMOUNT = 21; // sats per game
@@ -24,18 +25,32 @@ type ArcadeScreen = "menu" | "donate" | "playing" | "rom";
 interface ArcadePageProps {
   onBack: () => void;
   onCreateWallet?: () => void;
+  initialGame?: "hashout" | "powman" | "rom";
+  onNavigate?: (
+    screen: "arcade" | "arcade/hashout" | "arcade/powman" | "arcade/rom",
+  ) => void;
 }
 
-const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
+const ArcadePage: React.FC<ArcadePageProps> = ({
+  onBack,
+  onCreateWallet,
+  initialGame,
+  onNavigate,
+}) => {
   const wallet = useWallet();
   const { showToast } = useToast();
   const { muted } = useAudio();
-  const [screen, setScreen] = useState<ArcadeScreen>("menu");
+  const [screen, setScreen] = useState<ArcadeScreen>(
+    initialGame === "rom" ? "rom" : initialGame ? "donate" : "menu",
+  );
+  const [selectedGame, setSelectedGame] = useState<string>(
+    initialGame === "rom" ? "hashout" : (initialGame ?? "hashout"),
+  );
   const [isZapping, setIsZapping] = useState(false);
-  const [, setGameState] = useState<GameState>("title");
+  const [, setGameState] = useState<string>("title");
   const [balanceSats, setBalanceSats] = useState<number>(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<ReturnType<typeof createHashBreaker> | null>(null);
+  const gameRef = useRef<{ start: () => void; stop: () => void } | null>(null);
 
   const hasFreePlayed = sessionStorage.getItem(FREE_PLAY_KEY) === "true";
 
@@ -108,21 +123,50 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
   }, []);
 
   // --- Start game ---
-  const startPlaying = useCallback((selectedGame: string) => {
-    if (selectedGame === "hashout") {
-      if (IS_DEV) {
-        setScreen("playing");
-      } else {
-        setScreen("donate");
+  const startPlaying = useCallback(
+    (game: string) => {
+      setSelectedGame(game);
+      if (game === "hashout" || game === "powman") {
+        // Update URL to game-specific path
+        onNavigate?.(`arcade/${game}` as "arcade/hashout" | "arcade/powman");
+        if (IS_DEV) {
+          setScreen("playing");
+        } else {
+          setScreen("donate");
+        }
       }
-    }
-  }, []);
+    },
+    [onNavigate],
+  );
+
+  // --- Integer-scale the canvas for crisp pixel rendering ---
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasScale, setCanvasScale] = useState(1);
+
+  const nativeW = selectedGame === "powman" ? 336 : 320;
+  const nativeH = selectedGame === "powman" ? 280 : 240;
+
+  useEffect(() => {
+    if (screen !== "playing" || !containerRef.current) return;
+    const updateScale = () => {
+      const maxW = containerRef.current!.clientWidth - 4; // account for border
+      const maxH = window.innerHeight * 0.75;
+      const scaleW = Math.floor(maxW / nativeW) || 1;
+      const scaleH = Math.floor(maxH / nativeH) || 1;
+      setCanvasScale(Math.min(scaleW, scaleH));
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [screen, nativeW, nativeH]);
 
   // --- Game lifecycle ---
   useEffect(() => {
     if (screen !== "playing" || !canvasRef.current) return;
 
-    const game = createHashBreaker(canvasRef.current, setGameState);
+    const factory =
+      selectedGame === "powman" ? createPowMan : createHashBreaker;
+    const game = factory(canvasRef.current, setGameState);
     gameRef.current = game;
     game.start();
 
@@ -130,12 +174,13 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
       game.stop();
       gameRef.current = null;
     };
-  }, [screen]);
+  }, [screen, selectedGame]);
 
   // --- ROM loader ---
   const handleLoadRom = useCallback(() => {
     setScreen("rom");
-  }, []);
+    onNavigate?.("arcade/rom");
+  }, [onNavigate]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -159,6 +204,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
             ) {
               gameRef.current?.stop();
               setScreen("menu");
+              onNavigate?.("arcade");
             } else {
               onBack();
             }
@@ -193,11 +239,15 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ onBack, onCreateWallet }) => {
         )}
 
         {screen === "playing" && (
-          <div className="flex flex-col items-center">
+          <div ref={containerRef} className="flex flex-col items-center w-full">
             <canvas
               ref={canvasRef}
-              className="w-full max-w-lg border-2 border-atari-darkgray"
-              style={{ imageRendering: "pixelated", aspectRatio: "4/3" }}
+              className="border-2 border-atari-darkgray"
+              style={{
+                imageRendering: "pixelated",
+                width: nativeW * canvasScale,
+                height: nativeH * canvasScale,
+              }}
             />
           </div>
         )}
@@ -230,32 +280,32 @@ function GameMenu({
           onSelectGame("hashout");
         }}
       >
-        <div className="font-pixel text-lg sm:text-xl text-atari-yellow mb-2 text-center">
+        <div className="font-pixel text-xl sm:text-2xl text-atari-yellow mb-2 text-center">
           HASH-OUT
         </div>
-        <div className="font-pixel text-xs text-atari-midgray text-center">
-          BREAKOUT-STYLE BLOCK MINING
+        <div className="font-pixel text-sm text-atari-midgray text-center">
+          BLAST BRICKS TO MINE BLOCKS
         </div>
-        {/* Mini preview: colored brick rows */}
-        <div className="flex gap-1 mt-3 justify-center">
-          {[
-            "#b03c3c",
-            "#ac5030",
-            "#c8a020",
-            "#a0a034",
-            "#407c40",
-            "#00a0a0",
-            "#3840b0",
-            "#6c3ca0",
-          ].map((c, i) => (
-            <div key={i} style={{ background: c, width: 18, height: 6 }} />
-          ))}
+      </button>
+
+      {/* POW-MAN */}
+      <button
+        className="w-full max-w-sm border-2 border-atari-darkgray p-4 hover:border-atari-orange transition-colors"
+        onClick={() => {
+          playClick();
+          onSelectGame("powman");
+        }}
+      >
+        <div className="font-pixel text-xl sm:text-2xl text-atari-yellow mb-2 text-center">
+          POW-MAN
+        </div>
+        <div className="font-pixel text-sm text-atari-midgray text-center">
+          ENERGY-INTENSE MAZE PURSUIT
         </div>
       </button>
 
       {/* Coming soon placeholders */}
       {[
-        "POW-MAN",
         "ZAP INVADERS",
         "MOON LANDER",
         "LUNAR ROVER",
