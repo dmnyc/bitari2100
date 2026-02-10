@@ -7,6 +7,8 @@ import { useAudio } from "../contexts/AudioContext";
 import { playClick, playNavigate } from "../services/tiaSoundService";
 import { createHashBreaker } from "../games/HashBreaker";
 import { createPowMan } from "../games/PowMan";
+import { useLightningAddress } from "../features/receive/hooks/useLightningAddress";
+import { QRCodeContainer, CopyableText } from "../components/ui";
 
 const ZAP_ADDRESS = "bitari2100@breez.tips";
 const ZAP_AMOUNT = 21; // sats per game
@@ -47,7 +49,12 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   const [balanceSats, setBalanceSats] = useState<number>(0);
   const paidRef = useRef(false); // tracks if user paid for current game session
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const gameRef = useRef<{
+    start: () => void;
+    stop: () => void;
+    beginGame: () => void;
+    reGate: () => void;
+  } | null>(null);
 
   const freePlayKey = `${FREE_PLAY_KEY_PREFIX}${selectedGame}`;
   const hasFreePlayed = sessionStorage.getItem(freePlayKey) === "true";
@@ -68,16 +75,21 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     }
   }, [muted]);
 
-  // Fetch balance when donate overlay opens
-  useEffect(() => {
-    if (!showDonateOverlay || !hasWallet) return;
+  // Refresh balance helper (used on overlay open + polling from top-up)
+  const refreshBalance = useCallback(() => {
+    if (!hasWallet) return;
     wallet
       .getWalletInfo()
       .then((info) => {
         if (info) setBalanceSats(info.balanceSats);
       })
       .catch(() => {});
-  }, [showDonateOverlay, hasWallet, wallet]);
+  }, [hasWallet, wallet]);
+
+  // Fetch balance when donate overlay opens
+  useEffect(() => {
+    if (showDonateOverlay) refreshBalance();
+  }, [showDonateOverlay, refreshBalance]);
 
   // --- Zap via wallet (per game) ---
   const handleZap = useCallback(async () => {
@@ -95,6 +107,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       playClick();
       paidRef.current = true;
       setShowDonateOverlay(false);
+      gameRef.current?.beginGame();
     } catch (err) {
       console.error("Zap failed:", err);
       showToast(
@@ -108,25 +121,43 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
   // --- Free play (1 per session, unlimited in dev) ---
   const handleFreePlay = useCallback(() => {
-    if (!IS_DEV) {
-      sessionStorage.setItem(freePlayKey, "true");
-    }
+    sessionStorage.setItem(freePlayKey, "true");
     playClick();
     paidRef.current = true;
     setShowDonateOverlay(false);
+    gameRef.current?.beginGame();
   }, [freePlayKey]);
 
   // --- Game state change handler ---
-  // When game transitions from title to playing, show donate overlay if not paid
+  // When game fires "gate", show donate overlay
+  // When game over, reset paid state so next play requires payment
   const handleGameStateChange = useCallback(
     (state: string) => {
       setGameState(state);
-      if (state === "playing" && !paidRef.current && !IS_DEV) {
+      if (state === "gate") {
         setShowDonateOverlay(true);
+      } else if (state === "gameOver") {
+        paidRef.current = false;
+        gameRef.current?.reGate();
       }
     },
     [setGameState],
   );
+
+  // Block keyboard events reaching the game while donate overlay is up
+  useEffect(() => {
+    if (!showDonateOverlay) return;
+    const block = (e: KeyboardEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", block, true);
+    window.addEventListener("keyup", block, true);
+    return () => {
+      window.removeEventListener("keydown", block, true);
+      window.removeEventListener("keyup", block, true);
+    };
+  }, [showDonateOverlay]);
 
   // --- Start game ---
   const startPlaying = useCallback(
@@ -168,7 +199,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
     const factory =
       selectedGame === "powman" ? createPowMan : createHashBreaker;
-    const game = factory(canvasRef.current, handleGameStateChange);
+    const shouldGate = !IS_DEV && !paidRef.current;
+    const game = factory(canvasRef.current, handleGameStateChange, shouldGate);
     gameRef.current = game;
     game.start();
 
@@ -238,7 +270,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
               }}
             />
             {showDonateOverlay && (
-              <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10">
+              <div
+                className="absolute inset-0 bg-black flex items-center justify-center z-10"
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <DonateGate
                   hasWallet={hasWallet}
                   balanceSats={balanceSats}
@@ -247,6 +283,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
                   onZap={handleZap}
                   onFreePlay={handleFreePlay}
                   onCreateWallet={onCreateWallet}
+                  onBalanceRefresh={refreshBalance}
                 />
               </div>
             )}
@@ -355,6 +392,7 @@ function DonateGate({
   onZap,
   onFreePlay,
   onCreateWallet,
+  onBalanceRefresh,
 }: {
   hasWallet: boolean;
   balanceSats: number;
@@ -363,8 +401,71 @@ function DonateGate({
   onZap: () => void;
   onFreePlay: () => void;
   onCreateWallet?: () => void;
+  onBalanceRefresh: () => void;
 }) {
+  const { showToast } = useToast();
   const hasBalance = balanceSats >= ZAP_AMOUNT;
+  const [showTopUp, setShowTopUp] = useState(false);
+  const {
+    address: lnAddress,
+    isLoading: lnLoading,
+    load: loadLnAddress,
+  } = useLightningAddress();
+
+  // Load lightning address when top-up view opens
+  useEffect(() => {
+    if (showTopUp) loadLnAddress();
+  }, [showTopUp, loadLnAddress]);
+
+  // Poll balance while top-up is visible
+  useEffect(() => {
+    if (!showTopUp) return;
+    const interval = setInterval(onBalanceRefresh, 5000);
+    return () => clearInterval(interval);
+  }, [showTopUp, onBalanceRefresh]);
+
+  // Auto-close top-up when balance is sufficient
+  useEffect(() => {
+    if (showTopUp && hasBalance) setShowTopUp(false);
+  }, [showTopUp, hasBalance]);
+
+  if (showTopUp) {
+    const addrStr = lnAddress?.lightningAddress || "";
+    const lnurl = lnAddress?.lnurl || "";
+    return (
+      <div className="flex flex-col items-center gap-4 py-4 px-4 max-w-xs">
+        <div className="font-pixel text-lg text-atari-yellow text-center">
+          TOP UP WALLET
+        </div>
+        {lnLoading ? (
+          <div className="font-pixel text-xs text-atari-midgray py-8">
+            LOADING...
+          </div>
+        ) : lnurl ? (
+          <>
+            <QRCodeContainer value={lnurl} size={200} />
+            <CopyableText
+              text={addrStr}
+              truncate
+              label="LN ADDRESS"
+              onCopied={() => showToast("success", "Copied!")}
+              textToCopy={addrStr}
+            />
+            <div className="font-pixel text-xs text-atari-midgray text-center">
+              SEND ANY AMOUNT TO THIS ADDRESS
+            </div>
+          </>
+        ) : (
+          <div className="font-pixel text-xs text-atari-midgray text-center py-4">
+            COULD NOT LOAD ADDRESS
+          </div>
+        )}
+        <AtariButton variant="secondary" onClick={() => setShowTopUp(false)}>
+          BACK
+        </AtariButton>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-5 py-6">
@@ -399,11 +500,17 @@ function DonateGate({
         </AtariButton>
       )}
 
-      {/* No balance — prompt to deposit */}
+      {/* No balance — top up button */}
       {hasWallet && !hasBalance && (
-        <div className="font-pixel text-xs text-atari-midgray text-center">
-          DEPOSIT SATS TO YOUR WALLET
-        </div>
+        <AtariButton
+          variant="primary"
+          onClick={() => {
+            playClick();
+            setShowTopUp(true);
+          }}
+        >
+          TOP UP WALLET
+        </AtariButton>
       )}
 
       {/* Wallet CTA for unauthenticated users */}
