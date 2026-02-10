@@ -10,7 +10,6 @@
  */
 
 import {
-  playClick,
   playError,
   playCelebration,
   isMuted,
@@ -61,7 +60,7 @@ const MAZE_Y = 16; // leave room for HUD at top
 
 const LIVES_INITIAL = 3;
 const EXTRA_LIFE_SCORE = 10000;
-const POWER_DURATION = 8000; // 8 seconds
+// Power duration now varies by level — see FRIGHT_DURATIONS
 const GHOST_PEN_RELEASE_INTERVAL = 3000; // ms between ghost releases
 const BONUS_SPAWN_DOTS_1 = 70; // first bonus
 const BONUS_SPAWN_DOTS_2 = 170; // second bonus
@@ -121,7 +120,7 @@ const BONUS_ITEMS: BonusItem[] = [
   },
   {
     // Level 3: Book — open book, orange cover
-    name: "BOOK",
+    name: "T.B.S.",
     points: 300,
     draw: (ctx, x, y) => {
       // Left page
@@ -164,31 +163,47 @@ const BONUS_ITEMS: BonusItem[] = [
     },
   },
   {
-    // Level 5: Steak — T-bone shape
+    // Level 5: Steak — thick cut with fat rim and marbling
     name: "STEAK",
     points: 700,
     draw: (ctx, x, y) => {
-      // Meat body
-      ctx.fillStyle = C.redLit;
-      ctx.fillRect(x + 1, y + 2, 10, 7);
-      ctx.fillRect(x + 2, y + 1, 8, 1);
-      ctx.fillRect(x + 2, y + 9, 8, 1);
-      // Fat rim on top
-      ctx.fillStyle = "#e8c8a0";
-      ctx.fillRect(x + 2, y + 1, 8, 2);
-      // Bone (T shape)
+      // Black outline / shadow
+      ctx.fillStyle = C.black;
+      ctx.fillRect(x + 3, y + 0, 7, 1);
+      ctx.fillRect(x + 1, y + 1, 2, 1);
+      ctx.fillRect(x + 10, y + 1, 2, 1);
+      ctx.fillRect(x + 0, y + 2, 1, 7);
+      ctx.fillRect(x + 11, y + 2, 1, 6);
+      ctx.fillRect(x + 1, y + 9, 2, 1);
+      ctx.fillRect(x + 9, y + 8, 2, 1);
+      ctx.fillRect(x + 3, y + 10, 6, 1);
+      // Fat rim (top edge, pinkish-tan)
+      ctx.fillStyle = "#e8b8a0";
+      ctx.fillRect(x + 3, y + 1, 7, 2);
+      ctx.fillRect(x + 1, y + 2, 2, 1);
+      ctx.fillRect(x + 10, y + 2, 1, 1);
+      // Main meat body (deep red)
+      ctx.fillStyle = "#c01820";
+      ctx.fillRect(x + 1, y + 3, 10, 5);
+      ctx.fillRect(x + 3, y + 8, 6, 2);
+      ctx.fillRect(x + 1, y + 8, 2, 1);
+      ctx.fillRect(x + 9, y + 7, 2, 1);
+      // Lighter red marbling
+      ctx.fillStyle = "#e83838";
+      ctx.fillRect(x + 2, y + 4, 3, 1);
+      ctx.fillRect(x + 7, y + 5, 2, 1);
+      ctx.fillRect(x + 3, y + 7, 2, 1);
+      // White fat streak
+      ctx.fillStyle = "#f0d0c0";
+      ctx.fillRect(x + 5, y + 5, 2, 1);
+      // Bone nub (bottom, white)
       ctx.fillStyle = C.white;
-      ctx.fillRect(x + 5, y + 3, 2, 6);
-      ctx.fillRect(x + 3, y + 3, 6, 1);
-      // Grill marks
-      ctx.fillStyle = "#801818";
-      ctx.fillRect(x + 2, y + 5, 3, 1);
-      ctx.fillRect(x + 8, y + 7, 3, 1);
+      ctx.fillRect(x + 4, y + 9, 1, 1);
     },
   },
   {
     // Level 6: Dumbbells — barbell, horizontal
-    name: "DUMBBELLS",
+    name: "WEIGHTS",
     points: 1000,
     draw: (ctx, x, y) => {
       // Bar
@@ -207,39 +222,60 @@ const BONUS_ITEMS: BonusItem[] = [
     },
   },
   {
-    // Level 7: Diamond — tall gem with flat top, pointed bottom
+    // Level 7: Diamond — gem with black outline, cyan facets
     name: "DIAMOND",
     points: 2000,
     draw: (ctx, x, y) => {
-      // Flat top
-      ctx.fillStyle = C.cyanLit;
-      ctx.fillRect(x + 3, y + 0, 6, 2);
-      // Upper facets widen
-      ctx.fillRect(x + 2, y + 2, 8, 1);
-      ctx.fillRect(x + 1, y + 3, 10, 1);
-      // Girdle (widest, bright line)
-      ctx.fillStyle = C.white;
-      ctx.fillRect(x + 0, y + 4, 12, 1);
-      // Lower facets taper to point
-      ctx.fillStyle = C.cyan;
-      ctx.fillRect(x + 1, y + 5, 10, 1);
-      ctx.fillRect(x + 2, y + 6, 8, 1);
-      ctx.fillRect(x + 3, y + 7, 6, 1);
-      ctx.fillRect(x + 4, y + 8, 4, 1);
+      // Black outline
+      ctx.fillStyle = C.black;
+      ctx.fillRect(x + 3, y + 0, 6, 1);
+      ctx.fillRect(x + 2, y + 1, 1, 1);
+      ctx.fillRect(x + 9, y + 1, 1, 1);
+      ctx.fillRect(x + 1, y + 2, 1, 1);
+      ctx.fillRect(x + 10, y + 2, 1, 1);
+      ctx.fillRect(x + 0, y + 3, 1, 2);
+      ctx.fillRect(x + 11, y + 3, 1, 2);
+      ctx.fillRect(x + 1, y + 5, 1, 1);
+      ctx.fillRect(x + 10, y + 5, 1, 1);
+      ctx.fillRect(x + 2, y + 6, 1, 1);
+      ctx.fillRect(x + 9, y + 6, 1, 1);
+      ctx.fillRect(x + 3, y + 7, 1, 1);
+      ctx.fillRect(x + 8, y + 7, 1, 1);
+      ctx.fillRect(x + 4, y + 8, 1, 1);
+      ctx.fillRect(x + 7, y + 8, 1, 1);
       ctx.fillRect(x + 5, y + 9, 2, 1);
-      // Sparkle highlights
+      // Crown (flat top, darker teal)
+      ctx.fillStyle = "#00a0a0";
+      ctx.fillRect(x + 3, y + 1, 6, 1);
+      ctx.fillRect(x + 2, y + 2, 8, 1);
+      // Cross line at girdle
+      ctx.fillStyle = "#00c8c8";
+      ctx.fillRect(x + 5, y + 1, 2, 1);
+      // Main body (bright cyan)
+      ctx.fillStyle = "#00d8e8";
+      ctx.fillRect(x + 1, y + 3, 10, 2);
+      // Lower facets taper
+      ctx.fillStyle = "#00b8d0";
+      ctx.fillRect(x + 2, y + 5, 8, 1);
+      ctx.fillRect(x + 3, y + 6, 6, 1);
+      ctx.fillRect(x + 4, y + 7, 4, 1);
+      ctx.fillRect(x + 5, y + 8, 2, 1);
+      // Bright highlight (upper left facet)
+      ctx.fillStyle = "#80f0ff";
+      ctx.fillRect(x + 2, y + 3, 3, 1);
+      ctx.fillRect(x + 1, y + 4, 2, 1);
+      // White sparkle
       ctx.fillStyle = C.white;
-      ctx.fillRect(x + 3, y + 1, 2, 1);
-      ctx.fillRect(x + 2, y + 3, 2, 1);
-      ctx.fillRect(x + 3, y + 6, 1, 1);
+      ctx.fillRect(x + 3, y + 2, 1, 1);
     },
   },
   {
-    // Level 8: Lightning bolt — classic zigzag silhouette
-    name: "LIGHTNING",
+    // Level 8: Lightning bolt — orange/yellow gradient zigzag
+    name: "ZAPATHON",
     points: 3000,
     draw: (ctx, x, y) => {
-      ctx.fillStyle = C.yellowBright;
+      // Orange outer layer
+      ctx.fillStyle = "#e07000";
       // Top point angled right
       ctx.fillRect(x + 6, y + 0, 3, 1);
       ctx.fillRect(x + 5, y + 1, 3, 1);
@@ -256,11 +292,22 @@ const BONUS_ITEMS: BonusItem[] = [
       // Bottom point
       ctx.fillRect(x + 2, y + 9, 3, 1);
       ctx.fillRect(x + 2, y + 10, 2, 1);
-      // Hot white core
-      ctx.fillStyle = C.white;
-      ctx.fillRect(x + 3, y + 3, 3, 1);
-      ctx.fillRect(x + 5, y + 5, 2, 1);
+      // Yellow middle layer
+      ctx.fillStyle = "#f0b000";
+      ctx.fillRect(x + 6, y + 1, 2, 1);
+      ctx.fillRect(x + 5, y + 2, 2, 1);
+      ctx.fillRect(x + 3, y + 3, 4, 1);
+      ctx.fillRect(x + 3, y + 4, 4, 1);
+      ctx.fillRect(x + 5, y + 5, 3, 1);
+      ctx.fillRect(x + 5, y + 6, 2, 1);
       ctx.fillRect(x + 4, y + 7, 2, 1);
+      ctx.fillRect(x + 3, y + 8, 2, 1);
+      ctx.fillRect(x + 3, y + 9, 1, 1);
+      // Hot white/yellow core
+      ctx.fillStyle = "#ffe060";
+      ctx.fillRect(x + 4, y + 3, 2, 1);
+      ctx.fillRect(x + 6, y + 5, 1, 1);
+      ctx.fillRect(x + 4, y + 7, 1, 1);
     },
   },
   {
@@ -297,16 +344,33 @@ const BONUS_ITEMS: BonusItem[] = [
   },
 ];
 
-// Movement speeds (pixels per frame at 60fps) — must divide evenly into TILE
+// Movement speeds (pixels per frame at 60fps)
 const PLAYER_SPEED = 1;
 const GHOST_SPEED = 0.8;
 const GHOST_SPEED_FRIGHTENED = 0.5;
 const GHOST_SPEED_EATEN = 1.5;
+const GHOST_SPEED_TUNNEL = 0.4; // ghosts slow down in tunnels
 const SPEED_INCREMENT = 0.15; // per level
 
-// Scatter/chase cycle durations (ms)
-const SCATTER_DURATION = 7000;
-const CHASE_DURATION = 20000;
+// Tunnel rows (E at cols 0 and 27)
+const TUNNEL_ROWS = [4, 12];
+
+// Scatter/chase cycle durations per level bracket (ms)
+// [scatterDuration, chaseDuration]
+const MODE_TIMINGS: [number, number][] = [
+  [7000, 20000], // levels 1-2
+  [5000, 20000], // levels 3-4
+  [3000, 20000], // levels 5+
+];
+
+// Frightened duration per level (ms) — decreases, then 0 (no blue)
+const FRIGHT_DURATIONS = [8000, 6000, 4000, 3000, 2000, 2000, 1000, 1000, 0];
+
+// Cruise Elroy thresholds: HATEY speeds up when dots remaining drops below these
+const ELROY1_DOTS = 20; // first speedup
+const ELROY2_DOTS = 10; // second speedup
+const ELROY_SPEED_BOOST1 = 0.15;
+const ELROY_SPEED_BOOST2 = 0.3;
 
 // Directions
 const DIR = {
@@ -328,37 +392,38 @@ const E = 0; // empty
 const G = 4; // ghost door
 const N = 5; // ghost pen (no dot, not wall)
 
-// Classic-style maze — purple outline walls, wojak house at bottom, 1 tunnel
+// Classic-style maze — purple outline walls, centered ghost pen, symmetric layout
 // 22 rows x 28 cols — W=wall D=dot P=power E=empty G=ghost-door N=pen
+// Flipped 180° from classic orientation: player at top, pen in lower half
 // prettier-ignore
 const MAZE_TEMPLATE: number[][] = [
   //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
   [W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W], // 0
-  [W, P, D, D, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, D, P, W], // 1
-  [W, D, W, W, W, W, D, W, W, W, W, W, D, W, W, D, W, W, W, W, W, D, W, W, W, W, D, W], // 2
-  [W, D, W, W, W, W, D, W, W, W, W, W, D, W, W, D, W, W, W, W, W, D, W, W, W, W, D, W], // 3
-  [W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W], // 4
-  [W, D, W, W, W, W, W, D, W, W, W, W, D, W, W, D, W, W, W, W, D, W, W, W, W, W, D, W], // 5
-  [W, D, D, D, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W], // 6
-  [W, D, W, W, W, W, W, D, W, W, W, W, D, W, W, D, W, W, W, W, D, W, W, W, W, W, D, W], // 7
-  [E, D, D, D, D, D, D, D, D, D, D, W, D, D, D, D, W, D, D, D, D, D, D, D, D, D, D, E], // 8  tunnel
-  [W, W, W, W, D, W, W, W, W, W, D, W, D, W, W, D, W, D, W, W, W, W, W, D, W, W, W, W], // 9
-  [W, D, D, D, D, D, D, D, W, W, D, D, D, W, W, D, D, D, W, W, D, D, D, D, D, D, D, W], // 10
-  [W, D, W, W, W, D, W, D, D, D, D, W, W, W, W, W, W, D, D, D, D, W, D, W, W, W, D, W], // 11
-  [W, D, W, W, W, D, W, D, W, W, D, D, D, D, D, D, D, D, W, W, D, W, D, W, W, W, D, W], // 12
-  [W, D, D, D, D, D, W, D, W, W, D, W, W, W, W, W, W, D, W, W, D, W, D, D, D, D, D, W], // 13
-  [W, W, W, D, W, D, D, D, D, D, D, W, W, W, W, W, W, D, D, D, D, D, D, W, D, W, W, W], // 14
-  [E, D, D, D, W, D, W, W, W, W, D, D, D, D, D, D, D, D, W, W, W, W, D, W, D, D, D, E], // 15  tunnel
-  [W, D, W, W, W, D, W, W, W, W, D, W, W, W, W, W, W, D, W, W, W, W, D, W, W, W, D, W], // 16
-  [W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W], // 17
-  [W, D, W, W, D, W, W, W, D, W, W, W, W, G, G, W, W, W, W, D, W, W, W, D, W, W, D, W], // 18  ghost door
-  [W, D, W, W, D, W, W, W, D, W, W, W, N, N, N, N, W, W, W, D, W, W, W, D, W, W, D, W], // 19  pen
-  [W, P, D, D, D, D, D, D, D, W, W, W, N, N, N, N, W, W, W, D, D, D, D, D, D, D, P, W], // 20  pen
+  [W, P, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, P, W], // 1
+  [W, D, W, W, W, D, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, D, W, W, W, D, W], // 2
+  [W, D, W, W, W, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, W, W, W, D, W], // 3
+  [E, D, D, D, D, D, W, W, D, W, W, W, D, D, D, D, W, W, W, D, W, W, D, D, D, D, D, E], // 4   tunnel
+  [W, D, W, W, W, D, W, W, D, D, D, D, D, W, W, D, D, D, D, D, W, W, D, W, W, W, D, W], // 5
+  [W, D, D, D, W, D, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, D, W, D, D, D, W], // 6
+  [W, W, W, D, W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W, D, W, W, W], // 7
+  [W, D, D, D, D, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, D, D, D, D, W], // 8
+  [W, D, W, W, W, D, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W, W, D, W, W, W, D, W], // 9
+  [W, D, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, D, W], // 10
+  [W, D, D, D, D, D, W, W, D, W, W, W, N, N, N, N, W, W, W, D, W, W, D, D, D, D, D, W], // 11  pen
+  [E, D, W, W, W, D, D, D, D, W, W, W, N, N, N, N, W, W, W, D, D, D, D, W, W, W, D, E], // 12  tunnel + pen
+  [W, D, W, W, W, D, W, W, D, W, W, W, W, G, G, W, W, W, W, D, W, W, D, W, W, W, D, W], // 13  ghost door
+  [W, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, W], // 14
+  [W, D, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, D, W], // 15
+  [W, D, D, D, D, D, W, W, D, D, D, D, D, W, W, D, D, D, D, D, W, W, D, D, D, D, D, W], // 16
+  [W, W, W, D, W, D, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, D, W, D, W, W, W], // 17
+  [W, D, D, D, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W], // 18
+  [W, P, W, W, W, D, W, W, W, W, W, W, D, D, D, D, W, W, W, W, W, W, D, W, W, W, P, W], // 19
+  [W, D, D, D, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W], // 20
   [W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W], // 21
 ];
 
-// Player start position (tile coords)
-const PLAYER_START = { col: 14, row: 4 };
+// Player start position (tile coords) — above the ghost pen
+const PLAYER_START = { col: 14, row: 7 };
 
 // Ghost start positions and scatter targets
 interface GhostDef {
@@ -375,17 +440,17 @@ const GHOST_DEFS: GhostDef[] = [
   {
     name: "HATEY",
     color: C.redLit,
-    startCol: 13,
-    startRow: 17, // starts just above pen door — no pen delay
+    startCol: 14,
+    startRow: 11, // starts in pen, exits first
     scatterCol: 25,
     scatterRow: 0,
-    penDelay: 0,
+    penDelay: 500,
   },
   {
     name: "FUDDY",
     color: C.pinkLit,
     startCol: 13,
-    startRow: 19,
+    startRow: 11,
     scatterCol: 2,
     scatterRow: 0,
     penDelay: GHOST_PEN_RELEASE_INTERVAL,
@@ -394,7 +459,7 @@ const GHOST_DEFS: GhostDef[] = [
     name: "SCAMMY",
     color: C.cyanLit,
     startCol: 14,
-    startRow: 19,
+    startRow: 11,
     scatterCol: 27,
     scatterRow: 21,
     penDelay: GHOST_PEN_RELEASE_INTERVAL * 2,
@@ -403,7 +468,7 @@ const GHOST_DEFS: GhostDef[] = [
     name: "PETER",
     color: C.greenLit,
     startCol: 13,
-    startRow: 20,
+    startRow: 12,
     scatterCol: 0,
     scatterRow: 21,
     penDelay: GHOST_PEN_RELEASE_INTERVAL * 3,
@@ -422,13 +487,16 @@ interface Ghost {
   prevMode: GhostMode; // mode before frightened
   def: GhostDef;
   inPen: boolean;
+  leavingPen: boolean; // walking out through the door
   penTimer: number;
   speed: number;
 }
 
 export type GameState =
   | "title"
+  | "ready"
   | "playing"
+  | "paused"
   | "dying"
   | "levelClear"
   | "gameOver";
@@ -501,6 +569,23 @@ function playLevelClear() {
   playCelebration();
 }
 
+function playBonusPickup() {
+  // Ta-da! Two quick grace notes then a held high note
+  gameTone(440, 0.06, 0.1);
+  setTimeout(() => gameTone(554, 0.06, 0.1), 70);
+  setTimeout(() => gameTone(880, 0.25, 0.15), 150);
+}
+
+function playComboChime() {
+  // Triumphant ascending arpeggio for eating all 4 ghosts
+  gameTone(400, 0.08, 0.12);
+  setTimeout(() => gameTone(500, 0.08, 0.12), 80);
+  setTimeout(() => gameTone(600, 0.08, 0.12), 160);
+  setTimeout(() => gameTone(800, 0.08, 0.15), 240);
+  setTimeout(() => gameTone(1000, 0.15, 0.15), 320);
+  setTimeout(() => gameTone(1200, 0.25, 0.12), 440);
+}
+
 // --- Main game factory ---
 export function createPowMan(
   canvas: HTMLCanvasElement,
@@ -519,7 +604,10 @@ export function createPowMan(
   let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
   let dyingTimer: ReturnType<typeof setTimeout> | null = null;
+  let readyTimer: ReturnType<typeof setTimeout> | null = null;
   let dyingStart = 0;
+  let pauseStart = 0; // wall-clock time when paused
+  let pauseShowBonus = false; // show bonus key screen while paused
 
   // Maze state (mutable copy of template)
   let maze: number[][] = [];
@@ -550,7 +638,7 @@ export function createPowMan(
   let bonusActive = false;
   let bonusTimer = 0;
   let bonusCol = 14;
-  let bonusRow = 15;
+  let bonusRow = 9;
   let bonusScorePopup = 0; // frames remaining for score popup
   let bonusScoreValue = 0; // points to display
 
@@ -604,15 +692,15 @@ export function createPowMan(
     return maze[row][col] === G;
   }
 
-  function canMove(col: number, row: number, forGhost: boolean): boolean {
+  function canMove(col: number, row: number, ghostMode?: GhostMode): boolean {
     if (row < 0 || row >= MAZE_ROWS) return false;
     // Tunnel
     if (col < 0 || col >= MAZE_COLS) return true;
     const t = maze[row][col];
     if (t === W) return false;
     if (t === G) {
-      // Ghosts can pass through door when eaten (returning) or leaving pen
-      return forGhost === true;
+      // Only eaten ghosts can path through the door
+      return ghostMode === "eaten";
     }
     return true;
   }
@@ -678,8 +766,68 @@ export function createPowMan(
     py = pRow * TILE;
   }
 
+  let eatingSlowdown = 0; // frames of dot-eating speed penalty remaining
+
   function updatePlayer() {
-    const speed = PLAYER_SPEED + (level - 1) * SPEED_INCREMENT * 0.5;
+    let speed = PLAYER_SPEED + (level - 1) * SPEED_INCREMENT * 0.5;
+
+    // Dot-eating speed penalty (~90% speed for 1 frame after eating)
+    if (eatingSlowdown > 0) {
+      speed *= 0.9;
+      eatingSlowdown--;
+    }
+
+    // Cornering: allow direction change slightly before reaching tile center
+    if (pDir !== DIR.NONE && pNextDir !== DIR.NONE && pNextDir !== pDir) {
+      const remX = ((px % TILE) + TILE) % TILE;
+      const remY = ((py % TILE) + TILE) % TILE;
+      const distToCenter =
+        pDir.dx !== 0
+          ? pDir.dx > 0
+            ? remX === 0
+              ? 0
+              : TILE - remX
+            : remX
+          : pDir.dy > 0
+            ? remY === 0
+              ? 0
+              : TILE - remY
+            : remY;
+      // If within 2 pixels of center, try the buffered turn early
+      if (distToCenter > 0 && distToCenter <= 2) {
+        const snapCol = wrapCol(Math.round(px / TILE));
+        const snapRow = Math.round(py / TILE);
+        const testCol = wrapCol(snapCol + pNextDir.dx);
+        const testRow = snapRow + pNextDir.dy;
+        if (!isWall(testCol, testRow) && !isGhostDoor(testCol, testRow)) {
+          // Snap to center and turn
+          px = snapCol * TILE;
+          py = snapRow * TILE;
+          pCol = snapCol;
+          pRow = snapRow;
+          pDir = pNextDir;
+          // Eat dot at the snap tile (would otherwise be skipped)
+          if (pRow >= 0 && pRow < MAZE_ROWS && pCol >= 0 && pCol < MAZE_COLS) {
+            const tile = maze[pRow][pCol];
+            if (tile === D) {
+              maze[pRow][pCol] = E;
+              score += 10;
+              dotsEaten++;
+              eatingSlowdown = 1;
+              playWaka();
+              checkBonus();
+            } else if (tile === P) {
+              maze[pRow][pCol] = E;
+              score += 50;
+              dotsEaten++;
+              eatingSlowdown = 1;
+              activatePower();
+              playPowerPellet();
+            }
+          }
+        }
+      }
+    }
 
     // Move player and check if we reached a tile center
     const pEnt = { x: px, y: py };
@@ -710,12 +858,14 @@ export function createPowMan(
           maze[pRow][pCol] = E;
           score += 10;
           dotsEaten++;
+          eatingSlowdown = 1;
           playWaka();
           checkBonus();
         } else if (tile === P) {
           maze[pRow][pCol] = E;
           score += 50;
           dotsEaten++;
+          eatingSlowdown = 1;
           activatePower();
           playPowerPellet();
         }
@@ -728,7 +878,7 @@ export function createPowMan(
         score += item.points;
         bonusScoreValue = item.points;
         bonusScorePopup = 90; // 1.5 seconds
-        playClick();
+        playBonusPickup();
       }
 
       // Check level clear
@@ -738,7 +888,7 @@ export function createPowMan(
         levelClearTimer = setTimeout(() => {
           level++;
           initLevel();
-          setState("playing");
+          enterReady();
         }, 2000);
         return;
       }
@@ -768,11 +918,33 @@ export function createPowMan(
   }
 
   // --- Power pellet ---
+  function getFrightDuration(): number {
+    const idx = Math.min(level - 1, FRIGHT_DURATIONS.length - 1);
+    return FRIGHT_DURATIONS[idx];
+  }
+
+  function getModeTiming(): [number, number] {
+    const idx = level <= 2 ? 0 : level <= 4 ? 1 : 2;
+    return MODE_TIMINGS[idx];
+  }
+
   function activatePower() {
-    powerEndTime = Date.now() + POWER_DURATION;
+    const frightDur = getFrightDuration();
     ghostsEatenCombo = 0;
+
+    // At high levels, power pellets still reverse ghosts but no frightened mode
+    if (frightDur <= 0) {
+      for (const g of ghosts) {
+        if (!g.inPen && !g.leavingPen && g.mode !== "eaten") {
+          g.dir = { dx: -g.dir.dx, dy: -g.dir.dy } as Direction;
+        }
+      }
+      return;
+    }
+
+    powerEndTime = Date.now() + frightDur;
     for (const g of ghosts) {
-      if (!g.inPen && g.mode !== "eaten") {
+      if (!g.inPen && !g.leavingPen && g.mode !== "eaten") {
         g.prevMode = g.mode;
         g.mode = "frightened";
         // Reverse direction
@@ -803,6 +975,7 @@ export function createPowMan(
       prevMode: "scatter" as GhostMode,
       def,
       inPen: def.penDelay > 0,
+      leavingPen: false,
       penTimer: def.penDelay,
       speed: GHOST_SPEED,
     }));
@@ -864,7 +1037,7 @@ export function createPowMan(
       return { col: ghost.def.scatterCol, row: ghost.def.scatterRow };
     }
     if (ghost.mode === "eaten") {
-      return { col: 13, row: 18 }; // ghost pen door
+      return { col: 13, row: 13 }; // ghost pen door
     }
     // Chase mode — different per ghost
     switch (ghost.def.name) {
@@ -902,27 +1075,63 @@ export function createPowMan(
   function updateGhost(ghost: Ghost) {
     const baseSpeed = GHOST_SPEED + (level - 1) * SPEED_INCREMENT;
 
-    // In pen — count down then release
+    // In pen — count down then start leaving
     if (ghost.inPen) {
       ghost.penTimer -= 16.67; // ~1 frame at 60fps
       if (ghost.penTimer <= 0) {
         ghost.inPen = false;
-        ghost.x = 13 * TILE; // move to pen exit (above door)
-        ghost.y = 17 * TILE;
+        ghost.leavingPen = true;
+        // Move to center column and start walking down toward door
+        ghost.x = 13 * TILE;
         ghost.col = 13;
-        ghost.row = 17;
-        ghost.dir = DIR.UP;
+        ghost.dir = DIR.DOWN;
+        ghost.speed = GHOST_SPEED;
+      }
+      return;
+    }
+
+    // Leaving pen — walk down through the ghost door
+    if (ghost.leavingPen) {
+      ghost.speed = GHOST_SPEED;
+      ghost.dir = DIR.DOWN;
+      const moved = moveToNextCenter(
+        ghost,
+        ghost.dir.dx,
+        ghost.dir.dy,
+        ghost.speed,
+      );
+      if (moved) {
+        ghost.col = wrapCol(Math.round(ghost.x / TILE));
+        ghost.row = Math.round(ghost.y / TILE);
+        // Once past the door (row 14), become a normal ghost
+        if (ghost.row >= 14) {
+          ghost.leavingPen = false;
+          ghost.mode = globalMode;
+        }
       }
       return;
     }
 
     // Set speed based on mode
+    const inTunnel = TUNNEL_ROWS.includes(ghost.row);
     if (ghost.mode === "frightened") {
       ghost.speed = GHOST_SPEED_FRIGHTENED;
     } else if (ghost.mode === "eaten") {
       ghost.speed = GHOST_SPEED_EATEN;
+    } else if (inTunnel) {
+      ghost.speed = GHOST_SPEED_TUNNEL;
     } else {
-      ghost.speed = baseSpeed;
+      // Cruise Elroy: HATEY speeds up when few dots remain
+      let speed = baseSpeed;
+      if (ghost.def.name === "HATEY") {
+        const dotsLeft = totalDots - dotsEaten;
+        if (dotsLeft <= ELROY2_DOTS) {
+          speed += ELROY_SPEED_BOOST2;
+        } else if (dotsLeft <= ELROY1_DOTS) {
+          speed += ELROY_SPEED_BOOST1;
+        }
+      }
+      ghost.speed = speed;
     }
 
     // Move ghost toward next tile center
@@ -949,27 +1158,30 @@ export function createPowMan(
     );
     ghost.y = ghost.row * TILE; // re-sync pixel pos after clamp
 
-    // Eaten ghost reached pen area — respawn inside pen
+    // Eaten ghost reached pen door — enter pen then walk back out
     if (
       ghost.mode === "eaten" &&
-      ghost.row >= 18 &&
-      ghost.row <= 20 &&
+      ghost.row >= 11 &&
+      ghost.row <= 13 &&
       ghost.col >= 11 &&
       ghost.col <= 17
     ) {
-      // Teleport into pen and restore
-      ghost.col = ghost.def.startCol;
-      ghost.row = ghost.def.startRow;
+      // Place inside pen and start leaving
+      ghost.col = 13;
+      ghost.row = 11;
       ghost.x = ghost.col * TILE;
       ghost.y = ghost.row * TILE;
       ghost.mode = globalMode;
       ghost.prevMode = globalMode;
-      ghost.dir = DIR.UP;
+      ghost.inPen = false;
+      ghost.leavingPen = true;
+      ghost.dir = DIR.DOWN;
+      ghost.speed = GHOST_SPEED;
     }
 
     // Eaten ghosts use BFS for reliable pathfinding back to pen
     if (ghost.mode === "eaten") {
-      const bfsDir = bfsDirection(ghost.col, ghost.row, 13, 18);
+      const bfsDir = bfsDirection(ghost.col, ghost.row, 13, 13);
       if (bfsDir) {
         ghost.dir = bfsDir;
       }
@@ -999,7 +1211,7 @@ export function createPowMan(
       const nc = wrapCol(ghost.col + d.dx);
       const nr = ghost.row + d.dy;
 
-      if (!canMove(nc, nr, true)) continue;
+      if (!canMove(nc, nr, ghost.mode)) continue;
 
       const dd = distSq(nc, nr, target.col, target.row);
       if (dd < bestDist) {
@@ -1018,14 +1230,19 @@ export function createPowMan(
 
   function updateGhostModes() {
     const elapsed = Date.now() - modeStartTime;
-    const currentDuration =
-      globalMode === "scatter" ? SCATTER_DURATION : CHASE_DURATION;
+    const [scatterDur, chaseDur] = getModeTiming();
+    const currentDuration = globalMode === "scatter" ? scatterDur : chaseDur;
 
     if (elapsed >= currentDuration) {
       globalMode = globalMode === "scatter" ? "chase" : "scatter";
       modeStartTime = Date.now();
       for (const g of ghosts) {
-        if (g.mode !== "frightened" && g.mode !== "eaten" && !g.inPen) {
+        if (
+          g.mode !== "frightened" &&
+          g.mode !== "eaten" &&
+          !g.inPen &&
+          !g.leavingPen
+        ) {
           g.mode = globalMode;
           // Reverse direction on mode change
           g.dir = { dx: -g.dir.dx, dy: -g.dir.dy } as Direction;
@@ -1047,7 +1264,7 @@ export function createPowMan(
   // --- Collision detection ---
   function checkGhostCollisions() {
     for (const g of ghosts) {
-      if (g.inPen) continue;
+      if (g.inPen || g.leavingPen) continue;
       const dx = Math.abs(g.x + TILE / 2 - (px + TILE / 2));
       const dy = Math.abs(g.y + TILE / 2 - (py + TILE / 2));
       if (dx < TILE * 0.7 && dy < TILE * 0.7) {
@@ -1058,7 +1275,11 @@ export function createPowMan(
           const pts = 200 * Math.pow(2, ghostsEatenCombo - 1);
           score += pts;
           scorePopups.push({ x: g.x, y: g.y, value: pts, timer: 60 });
-          playEatGhost();
+          if (ghostsEatenCombo >= 4) {
+            playComboChime();
+          } else {
+            playEatGhost();
+          }
         } else if (g.mode !== "eaten") {
           // Player dies
           playerDie();
@@ -1080,7 +1301,7 @@ export function createPowMan(
       } else {
         initPlayer();
         initGhosts();
-        setState("playing");
+        enterReady();
       }
     }, 1500);
   }
@@ -1094,6 +1315,7 @@ export function createPowMan(
     bonusScorePopup = 0;
     scorePopups = [];
     powerEndTime = 0;
+    eatingSlowdown = 0;
     modeStartTime = Date.now();
     globalMode = "scatter";
   }
@@ -1186,7 +1408,7 @@ export function createPowMan(
           ctx.fillStyle = C.pinkLit;
           ctx.fillRect(tx, ty + 5, TILE, 2);
         } else if (tile === D) {
-          // Dot (small)
+          // Small dot
           ctx.fillStyle = C.yellowBright;
           ctx.fillRect(tx + 5, ty + 5, 2, 2);
         } else if (tile === P) {
@@ -1269,13 +1491,19 @@ export function createPowMan(
     const sy = MAZE_Y + ghost.y;
 
     if (ghost.mode === "eaten") {
-      // Just eyes floating back to pen
+      // Eyes and open mouth floating back to pen
       ctx.fillStyle = C.white;
       ctx.fillRect(sx + 2, sy + 4, 3, 3);
       ctx.fillRect(sx + 7, sy + 4, 3, 3);
       ctx.fillStyle = C.black;
       ctx.fillRect(sx + 3, sy + 5, 1, 1);
       ctx.fillRect(sx + 8, sy + 5, 1, 1);
+      // Nose + sad mouth — same as normal face
+      ctx.fillStyle = C.white;
+      ctx.fillRect(sx + 5, sy + 7, 2, 1);
+      ctx.fillRect(sx + 4, sy + 8, 1, 1);
+      ctx.fillRect(sx + 5, sy + 9, 2, 1);
+      ctx.fillRect(sx + 7, sy + 8, 1, 1);
       return;
     }
 
@@ -1390,8 +1618,9 @@ export function createPowMan(
   function drawTitle() {
     const blink = Math.floor(animFrame / 30) % 2 === 0;
 
-    // POW-MAN title — horizontal banded color stripes
+    // POW-MAN title — horizontal banded color stripes using clip regions
     const titleSize = 28;
+    const titleY = 20;
     const bandColors = [
       C.redHot,
       C.orangeHot,
@@ -1402,25 +1631,21 @@ export function createPowMan(
       C.orangeHot,
       C.redHot,
     ];
-    const offCanvas = document.createElement("canvas");
-    offCanvas.width = GAME_W;
-    offCanvas.height = titleSize + 4;
-    const offCtx = offCanvas.getContext("2d")!;
-    offCtx.font = `${titleSize}px "Press Start 2P", monospace`;
-    offCtx.textAlign = "center";
-    offCtx.fillStyle = "#ffffff";
-    offCtx.fillText("POW-MAN", GAME_W / 2, titleSize);
-    const titleY = 20;
-    const imgData = offCtx.getImageData(0, 0, GAME_W, titleSize + 4);
-    for (let row = 0; row < titleSize + 4; row++) {
-      const bandIdx = Math.floor((row / (titleSize + 4)) * bandColors.length);
-      ctx.fillStyle = bandColors[Math.min(bandIdx, bandColors.length - 1)];
-      for (let col = 0; col < GAME_W; col++) {
-        if (imgData.data[(row * GAME_W + col) * 4 + 3] > 128) {
-          ctx.fillRect(col, titleY + row, 1, 1);
-        }
-      }
+    const totalH = titleSize + 4;
+    const bandH = totalH / bandColors.length;
+    ctx.font = `${titleSize}px "Press Start 2P", monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    for (let i = 0; i < bandColors.length; i++) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, titleY + i * bandH, GAME_W, bandH);
+      ctx.clip();
+      ctx.fillStyle = bandColors[i];
+      ctx.fillText("POW-MAN", GAME_W / 2, titleY);
+      ctx.restore();
     }
+    ctx.textBaseline = "alphabetic";
 
     drawText("Consume all the energy,", GAME_W / 2, 68, C.bright, 10);
     drawText("but don't get wojacked!", GAME_W / 2, 84, C.bright, 10);
@@ -1504,8 +1729,8 @@ export function createPowMan(
     const scale = 3;
     const cols = 3;
     const cellW = GAME_W / cols;
-    const cellH = 80;
-    const startY = 32;
+    const cellH = 76;
+    const startY = 30;
 
     for (let i = 0; i < BONUS_ITEMS.length; i++) {
       const item = BONUS_ITEMS[i];
@@ -1538,14 +1763,7 @@ export function createPowMan(
       );
     }
 
-    drawText(
-      "PRESS D TO CLOSE",
-      GAME_W / 2,
-      GAME_H - 10,
-      C.midgray,
-      8,
-      "center",
-    );
+    // Footer text drawn by caller (title screen vs pause have different text)
   }
 
   function drawGameOver() {
@@ -1566,6 +1784,14 @@ export function createPowMan(
     if (state === "title") {
       if (showSpritePreview) {
         drawSpritePreview();
+        drawText(
+          "PRESS D TO CLOSE",
+          GAME_W / 2,
+          GAME_H - 10,
+          C.midgray,
+          8,
+          "center",
+        );
       } else {
         drawTitle();
       }
@@ -1582,6 +1808,38 @@ export function createPowMan(
     drawPlayer();
     for (const g of ghosts) drawGhost(g);
 
+    if (state === "paused") {
+      if (pauseShowBonus) {
+        drawSpritePreview();
+        drawText(
+          "SPACE OR TAP TO RESUME",
+          GAME_W / 2,
+          GAME_H - 10,
+          C.midgray,
+          8,
+          "center",
+        );
+      } else {
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, GAME_W, GAME_H);
+        drawText("PAUSED", GAME_W / 2, GAME_H / 2 - 4, C.bright, 16);
+        drawText(
+          "SPACE OR TAP TO RESUME",
+          GAME_W / 2,
+          GAME_H / 2 + 18,
+          C.midgray,
+          8,
+        );
+      }
+    }
+
+    if (state === "ready") {
+      const blink = Math.floor(animFrame / 15) % 2 === 0;
+      if (blink) {
+        drawText("READY!", GAME_W / 2, GAME_H / 2 + 4, C.yellowBright, 14);
+      }
+    }
+
     if (state === "levelClear") {
       ctx.fillStyle = "rgba(0,0,0,0.5)";
       ctx.fillRect(0, 0, GAME_W, GAME_H);
@@ -1596,22 +1854,17 @@ export function createPowMan(
     }
 
     if (state === "dying") {
-      // Flicker and dissipate — randomly erase pixels, increasing over time
+      // Player sprite is already drawn above — punch out pixels to dissipate
       const elapsed = Date.now() - dyingStart;
       const progress = Math.min(elapsed / 1500, 1); // 0→1 over 1.5s
       const sx = MAZE_X + px;
       const sy = MAZE_Y + py;
-      // Erase the cleanly-drawn player, redraw with holes
       ctx.fillStyle = C.black;
-      ctx.fillRect(sx - 1, sy - 1, 14, 13);
-      // Re-draw body with flickering dropout
-      for (let dy = 0; dy < 11; dy++) {
-        for (let dx = 0; dx < 12; dx++) {
-          if (Math.random() < progress) continue; // skip pixel = dissipate
-          // Flicker: randomly skip extra pixels
-          if (Math.random() < 0.15) continue;
-          ctx.fillStyle = C.orangeHot;
-          ctx.fillRect(sx + dx, sy + dy, 1, 1);
+      for (let dy = -1; dy < 12; dy++) {
+        for (let dx = -1; dx < 13; dx++) {
+          if (Math.random() < progress) {
+            ctx.fillRect(sx + dx, sy + dy, 1, 1);
+          }
         }
       }
     }
@@ -1639,13 +1892,21 @@ export function createPowMan(
     rafId = requestAnimationFrame(gameLoop);
   }
 
+  function enterReady() {
+    setState("ready");
+    readyTimer = setTimeout(() => {
+      readyTimer = null;
+      setState("playing");
+    }, 2000);
+  }
+
   function startGame() {
     score = 0;
     level = 1;
     lives = LIVES_INITIAL;
     extraLifeAwarded = false;
     initLevel();
-    setState("playing");
+    enterReady();
   }
 
   // --- Input handlers ---
@@ -1661,8 +1922,16 @@ export function createPowMan(
       startGame();
     } else if (state === "gameOver" && (e.key === " " || e.key === "Enter")) {
       startGame();
+    } else if (state === "paused") {
+      if (e.key === " " || e.key === "Enter") {
+        resumeFromPause();
+      }
     } else if (state === "playing") {
-      if (e.key === "ArrowUp" || e.key === "w") pNextDir = DIR.UP;
+      if (e.key === " ") {
+        pauseShowBonus = false;
+        pauseStart = Date.now();
+        setState("paused");
+      } else if (e.key === "ArrowUp" || e.key === "w") pNextDir = DIR.UP;
       else if (e.key === "ArrowDown" || e.key === "s") pNextDir = DIR.DOWN;
       else if (e.key === "ArrowLeft" || e.key === "a") pNextDir = DIR.LEFT;
       else if (e.key === "ArrowRight" || e.key === "d") pNextDir = DIR.RIGHT;
@@ -1681,6 +1950,15 @@ export function createPowMan(
 
     if (state === "title" || state === "gameOver") {
       startGame();
+    } else if (state === "paused") {
+      resumeFromPause();
+    } else if (state === "playing") {
+      const { cx, cy } = canvasCoords(touch.clientX, touch.clientY);
+      if (isHudRightTap(cx, cy)) {
+        pauseShowBonus = true;
+        pauseStart = Date.now();
+        setState("paused");
+      }
     }
   }
 
@@ -1703,9 +1981,41 @@ export function createPowMan(
     }
   }
 
-  function onMouseClick() {
+  function canvasCoords(
+    clientX: number,
+    clientY: number,
+  ): { cx: number; cy: number } {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      cx: (clientX - rect.left) * (GAME_W / rect.width),
+      cy: (clientY - rect.top) * (GAME_H / rect.height),
+    };
+  }
+
+  function isHudRightTap(cx: number, cy: number): boolean {
+    return cy < MAZE_Y && cx > GAME_W - 80;
+  }
+
+  function resumeFromPause() {
+    const pauseDur = Date.now() - pauseStart;
+    if (powerEndTime > 0) powerEndTime += pauseDur;
+    modeStartTime += pauseDur;
+    pauseShowBonus = false;
+    setState("playing");
+  }
+
+  function onMouseClick(e: MouseEvent) {
     if (state === "title" || state === "gameOver") {
       startGame();
+    } else if (state === "paused") {
+      resumeFromPause();
+    } else if (state === "playing") {
+      const { cx, cy } = canvasCoords(e.clientX, e.clientY);
+      if (isHudRightTap(cx, cy)) {
+        pauseShowBonus = true;
+        pauseStart = Date.now();
+        setState("paused");
+      }
     }
   }
 
@@ -1725,6 +2035,7 @@ export function createPowMan(
     if (rafId !== null) cancelAnimationFrame(rafId);
     if (levelClearTimer !== null) clearTimeout(levelClearTimer);
     if (dyingTimer !== null) clearTimeout(dyingTimer);
+    if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
     canvas.removeEventListener("touchstart", onTouchStart);

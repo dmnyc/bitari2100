@@ -139,6 +139,27 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     [onNavigate],
   );
 
+  // --- Integer-scale the canvas for crisp pixel rendering ---
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasScale, setCanvasScale] = useState(1);
+
+  const nativeW = selectedGame === "powman" ? 336 : 320;
+  const nativeH = selectedGame === "powman" ? 280 : 240;
+
+  useEffect(() => {
+    if (screen !== "playing" || !containerRef.current) return;
+    const updateScale = () => {
+      const maxW = containerRef.current!.clientWidth - 4; // account for border
+      const maxH = window.innerHeight * 0.75;
+      const scaleW = Math.floor(maxW / nativeW) || 1;
+      const scaleH = Math.floor(maxH / nativeH) || 1;
+      setCanvasScale(Math.min(scaleW, scaleH));
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [screen, nativeW, nativeH]);
+
   // --- Game lifecycle ---
   useEffect(() => {
     if (screen !== "playing" || !canvasRef.current) return;
@@ -218,13 +239,14 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
         )}
 
         {screen === "playing" && (
-          <div className="flex flex-col items-center">
+          <div ref={containerRef} className="flex flex-col items-center w-full">
             <canvas
               ref={canvasRef}
-              className="w-full max-w-lg border-2 border-atari-darkgray"
+              className="border-2 border-atari-darkgray"
               style={{
                 imageRendering: "pixelated",
-                aspectRatio: selectedGame === "powman" ? "6/5" : "4/3",
+                width: nativeW * canvasScale,
+                height: nativeH * canvasScale,
               }}
             />
           </div>
