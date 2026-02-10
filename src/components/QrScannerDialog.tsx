@@ -115,7 +115,7 @@ const QrScannerDialog: React.FC<QrScannerDialogProps> = ({
             playClick();
             handleClose();
           }}
-          className="atari-dialog-close"
+          className="atari-dialog-close pwa-close-offset"
           style={{ top: 8, right: 8 }}
           aria-label="Close scanner"
         >

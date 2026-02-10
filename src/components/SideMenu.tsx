@@ -105,7 +105,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
           playClick();
           onClose();
         }}
-        className="atari-dialog-close"
+        className="atari-dialog-close pwa-close-offset"
         style={{ position: "fixed", top: 8, right: 8 }}
       >
         X

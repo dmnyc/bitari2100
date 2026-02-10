@@ -250,7 +250,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-4 playing-content">
         {screen === "menu" && (
           <GameMenu onSelectGame={startPlaying} onLoadRom={handleLoadRom} />
         )}
@@ -269,11 +269,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
                 height: nativeH * canvasScale,
               }}
             />
-            <div className="font-pixel text-xs text-atari-darkgray text-center mt-2">
+            <div className="font-pixel text-xs text-atari-darkgray text-center mt-1 sm:mt-2">
               SWIPE OR USE KEYBOARD ARROW KEYS TO PLAY
             </div>
             <button
-              className="font-pixel text-sm text-atari-orange hover:text-atari-yellow mt-3 py-2 px-4 border-2 border-atari-orange hover:border-atari-yellow transition-colors"
+              className="font-pixel text-sm text-atari-orange hover:text-atari-yellow mt-2 sm:mt-3 py-1.5 sm:py-2 px-4 border-2 border-atari-orange hover:border-atari-yellow transition-colors"
               onClick={() => {
                 playNavigate();
                 gameRef.current?.stop();

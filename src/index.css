@@ -892,6 +892,11 @@ body {
         padding: 10px 14px;
     }
 
+    /* Tighter padding on game screen so BACK TO ARCADE stays above fold */
+    .playing-content {
+        padding: 8px 8px;
+    }
+
     /* Reduce scanline intensity on small screens for readability */
     .crt-scanlines::after {
         background: repeating-linear-gradient(
@@ -901,6 +906,19 @@ body {
             transparent 1px,
             transparent 3px
         );
+    }
+}
+
+/* --- PWA standalone mode: move close buttons away from status bar edge --- */
+@media (display-mode: standalone) {
+    .atari-dialog-close {
+        top: max(12px, env(safe-area-inset-top, 12px));
+        right: max(12px, env(safe-area-inset-right, 12px));
+    }
+
+    .pwa-close-offset {
+        top: max(12px, env(safe-area-inset-top, 12px)) !important;
+        right: max(12px, env(safe-area-inset-right, 12px)) !important;
     }
 }
 
