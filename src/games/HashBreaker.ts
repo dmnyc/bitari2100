@@ -110,6 +110,7 @@ interface Ball {
 
 export type GameState =
   | "title"
+  | "gate"
   | "playing"
   | "paused"
   | "levelClear"
@@ -118,6 +119,7 @@ export type GameState =
 export interface HashBreakerGame {
   start: () => void;
   stop: () => void;
+  beginGame: () => void;
   getState: () => GameState;
   getScore: () => number;
   getLevel: () => number;
@@ -185,6 +187,7 @@ function playPowerUp() {
 export function createHashBreaker(
   canvas: HTMLCanvasElement,
   onStateChange?: (state: GameState) => void,
+  gated = true,
 ): HashBreakerGame {
   const ctx = canvas.getContext("2d")!;
   canvas.width = GAME_W;
@@ -299,19 +302,29 @@ export function createHashBreaker(
     resetBall();
   }
 
+  /** Try to start — if gated and not yet paid, fire "gate" instead. */
+  function tryStart() {
+    if (gated) {
+      setState("gate");
+    } else {
+      startGame();
+    }
+  }
+
   // --- Input handlers ---
   function onKeyDown(e: KeyboardEvent) {
     keys[e.key] = true;
-    if (state === "title" && (e.key === " " || e.key === "Enter")) {
-      startGame();
+    if (
+      (state === "title" || state === "gameOver") &&
+      (e.key === " " || e.key === "Enter")
+    ) {
+      tryStart();
     } else if (
       state === "playing" &&
       !ball.active &&
       (e.key === " " || e.key === "ArrowUp")
     ) {
       launchBall();
-    } else if (state === "gameOver" && (e.key === " " || e.key === "Enter")) {
-      startGame();
     }
   }
 
@@ -326,7 +339,7 @@ export function createHashBreaker(
     touchX = (e.touches[0].clientX - rect.left) * scaleX;
 
     if (state === "title" || state === "gameOver") {
-      startGame();
+      tryStart();
     } else if (state === "playing" && !ball.active) {
       launchBall();
     }
@@ -346,7 +359,7 @@ export function createHashBreaker(
 
   function onMouseClick() {
     if (state === "title" || state === "gameOver") {
-      startGame();
+      tryStart();
     } else if (state === "playing" && !ball.active) {
       launchBall();
     }
@@ -516,7 +529,7 @@ export function createHashBreaker(
     ctx.fillStyle = C.black;
     ctx.fillRect(0, 0, GAME_W, GAME_H);
 
-    if (state === "title") {
+    if (state === "title" || state === "gate") {
       drawTitle();
       return;
     }
@@ -736,6 +749,10 @@ export function createHashBreaker(
   return {
     start,
     stop,
+    beginGame: () => {
+      gated = false;
+      startGame();
+    },
     getState: () => state,
     getScore: () => score,
     getLevel: () => level,

@@ -47,7 +47,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   const [balanceSats, setBalanceSats] = useState<number>(0);
   const paidRef = useRef(false); // tracks if user paid for current game session
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const gameRef = useRef<{
+    start: () => void;
+    stop: () => void;
+    beginGame: () => void;
+  } | null>(null);
 
   const freePlayKey = `${FREE_PLAY_KEY_PREFIX}${selectedGame}`;
   const hasFreePlayed = sessionStorage.getItem(freePlayKey) === "true";
@@ -95,6 +99,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       playClick();
       paidRef.current = true;
       setShowDonateOverlay(false);
+      gameRef.current?.beginGame();
     } catch (err) {
       console.error("Zap failed:", err);
       showToast(
@@ -114,14 +119,15 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     playClick();
     paidRef.current = true;
     setShowDonateOverlay(false);
+    gameRef.current?.beginGame();
   }, [freePlayKey]);
 
   // --- Game state change handler ---
-  // When game transitions from title to playing, show donate overlay if not paid
+  // When game fires "gate", show donate overlay
   const handleGameStateChange = useCallback(
     (state: string) => {
       setGameState(state);
-      if (state === "playing" && !paidRef.current && !IS_DEV) {
+      if (state === "gate") {
         setShowDonateOverlay(true);
       }
     },
@@ -168,7 +174,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
     const factory =
       selectedGame === "powman" ? createPowMan : createHashBreaker;
-    const game = factory(canvasRef.current, handleGameStateChange);
+    const shouldGate = !IS_DEV && !paidRef.current;
+    const game = factory(canvasRef.current, handleGameStateChange, shouldGate);
     gameRef.current = game;
     game.start();
 

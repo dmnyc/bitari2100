@@ -494,6 +494,7 @@ interface Ghost {
 
 export type GameState =
   | "title"
+  | "gate"
   | "ready"
   | "playing"
   | "paused"
@@ -504,6 +505,7 @@ export type GameState =
 export interface PowManGame {
   start: () => void;
   stop: () => void;
+  beginGame: () => void;
   getState: () => GameState;
   getScore: () => number;
   getLevel: () => number;
@@ -590,6 +592,7 @@ function playComboChime() {
 export function createPowMan(
   canvas: HTMLCanvasElement,
   onStateChange?: (state: GameState) => void,
+  gated = true,
 ): PowManGame {
   const ctx = canvas.getContext("2d")!;
   canvas.width = GAME_W;
@@ -1781,8 +1784,8 @@ export function createPowMan(
     ctx.fillStyle = C.black;
     ctx.fillRect(0, 0, GAME_W, GAME_H);
 
-    if (state === "title") {
-      if (showSpritePreview) {
+    if (state === "title" || state === "gate") {
+      if (showSpritePreview && state === "title") {
         drawSpritePreview();
         drawText(
           "PRESS D TO CLOSE",
@@ -1900,6 +1903,15 @@ export function createPowMan(
     }, 2000);
   }
 
+  /** Try to start — if gated, fire "gate" instead. */
+  function tryStart() {
+    if (gated) {
+      setState("gate");
+    } else {
+      startGame();
+    }
+  }
+
   function startGame() {
     score = 0;
     level = 1;
@@ -1919,9 +1931,9 @@ export function createPowMan(
       !showSpritePreview &&
       (e.key === " " || e.key === "Enter")
     ) {
-      startGame();
+      tryStart();
     } else if (state === "gameOver" && (e.key === " " || e.key === "Enter")) {
-      startGame();
+      tryStart();
     } else if (state === "paused") {
       if (e.key === " " || e.key === "Enter") {
         resumeFromPause();
@@ -1949,7 +1961,7 @@ export function createPowMan(
     swipeStartY = touch.clientY;
 
     if (state === "title" || state === "gameOver") {
-      startGame();
+      tryStart();
     } else if (state === "paused") {
       resumeFromPause();
     } else if (state === "playing") {
@@ -2006,7 +2018,7 @@ export function createPowMan(
 
   function onMouseClick(e: MouseEvent) {
     if (state === "title" || state === "gameOver") {
-      startGame();
+      tryStart();
     } else if (state === "paused") {
       resumeFromPause();
     } else if (state === "playing") {
@@ -2047,6 +2059,10 @@ export function createPowMan(
   return {
     start,
     stop,
+    beginGame: () => {
+      gated = false;
+      startGame();
+    },
     getState: () => state,
     getScore: () => score,
     getLevel: () => level,
