@@ -56,15 +56,6 @@ const ToastNotification: React.FC<ToastNotificationProps> = ({
             </div>
           )}
         </div>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onClose, 300);
-          }}
-          className="font-pixel text-xs opacity-60 hover:opacity-100 shrink-0"
-        >
-          x
-        </button>
       </div>
     </div>
   );
