@@ -1,5 +1,13 @@
 {
   "rewrites": [
+    {
+      "source": "/arcade/hashout",
+      "destination": "/api/og?path=/arcade/hashout"
+    },
+    {
+      "source": "/arcade/powman",
+      "destination": "/api/og?path=/arcade/powman"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
