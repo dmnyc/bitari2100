@@ -95,10 +95,18 @@ const PATH_TO_SCREEN: Record<string, Screen> = Object.fromEntries(
   Object.entries(SCREEN_PATHS).map(([s, p]) => [p, s as Screen]),
 ) as Record<string, Screen>;
 
+/** Look up screen from pathname, stripping trailing slashes. */
+function screenFromPath(pathname: string): Screen | undefined {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  return PATH_TO_SCREEN[normalized];
+}
+
 // Main App without toast functionality
 const AppContent: React.FC = () => {
-  // Screen navigation state
-  const [currentScreen, setCurrentScreen] = useState<Screen>("home");
+  // Screen navigation state — initialise from URL so deep links work
+  const [currentScreen, setCurrentScreen] = useState<Screen>(
+    () => screenFromPath(window.location.pathname) ?? "home",
+  );
 
   /** Navigate to a screen, pushing a history entry. */
   const navigateTo = useCallback((screen: Screen) => {
@@ -122,7 +130,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       const screen =
-        e.state?.screen ?? PATH_TO_SCREEN[window.location.pathname] ?? "home";
+        e.state?.screen ?? screenFromPath(window.location.pathname) ?? "home";
       setCurrentScreen(screen);
     };
     window.addEventListener("popstate", handlePopState);
@@ -323,7 +331,7 @@ const AppContent: React.FC = () => {
     if (savedMnemonic) {
       connectWallet(savedMnemonic, false);
       // Restore screen from URL if it's an authenticated page, else default to wallet
-      const urlScreen = PATH_TO_SCREEN[window.location.pathname];
+      const urlScreen = screenFromPath(window.location.pathname);
       const authScreens: Screen[] = [
         "wallet",
         "settings",
@@ -341,9 +349,9 @@ const AppContent: React.FC = () => {
       navigateSilent(target);
     } else {
       // Allow arcade without auth
-      const urlScreen = PATH_TO_SCREEN[window.location.pathname];
+      const urlScreen = screenFromPath(window.location.pathname);
       const isArcade = urlScreen?.startsWith("arcade") ?? false;
-      navigateSilent(isArcade ? urlScreen : "home");
+      navigateSilent(isArcade && urlScreen ? urlScreen : "home");
       setIsLoading(false);
     }
 
