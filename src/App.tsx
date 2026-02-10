@@ -70,7 +70,10 @@ type Screen =
   | "backup"
   | "fiatCurrencies"
   | "about"
-  | "arcade";
+  | "arcade"
+  | "arcade/hashout"
+  | "arcade/powman"
+  | "arcade/rom";
 
 const SCREEN_PATHS: Record<Screen, string> = {
   home: "/",
@@ -83,6 +86,9 @@ const SCREEN_PATHS: Record<Screen, string> = {
   fiatCurrencies: "/currencies",
   about: "/about",
   arcade: "/arcade",
+  "arcade/hashout": "/arcade/hashout",
+  "arcade/powman": "/arcade/powman",
+  "arcade/rom": "/arcade/rom",
 };
 
 const PATH_TO_SCREEN: Record<string, Screen> = Object.fromEntries(
@@ -326,6 +332,9 @@ const AppContent: React.FC = () => {
         "about",
         "getRefund",
         "arcade",
+        "arcade/hashout",
+        "arcade/powman",
+        "arcade/rom",
       ];
       const target =
         urlScreen && authScreens.includes(urlScreen) ? urlScreen : "wallet";
@@ -333,7 +342,8 @@ const AppContent: React.FC = () => {
     } else {
       // Allow arcade without auth
       const urlScreen = PATH_TO_SCREEN[window.location.pathname];
-      navigateSilent(urlScreen === "arcade" ? "arcade" : "home");
+      const isArcade = urlScreen?.startsWith("arcade") ?? false;
+      navigateSilent(isArcade ? urlScreen : "home");
       setIsLoading(false);
     }
 
@@ -619,11 +629,24 @@ const AppContent: React.FC = () => {
         );
 
       case "arcade":
+      case "arcade/hashout":
+      case "arcade/powman":
+      case "arcade/rom":
         return (
           <Suspense fallback={<AtariLoading />}>
             <ArcadePage
               onBack={() => navigateTo(isConnected ? "wallet" : "home")}
               onCreateWallet={isConnected ? undefined : navigateToGenerate}
+              initialGame={
+                currentScreen === "arcade/hashout"
+                  ? "hashout"
+                  : currentScreen === "arcade/powman"
+                    ? "powman"
+                    : currentScreen === "arcade/rom"
+                      ? "rom"
+                      : undefined
+              }
+              onNavigate={navigateTo}
             />
           </Suspense>
         );
