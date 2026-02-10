@@ -1,26 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AtariButton } from "../components/atari/AtariButton";
 import { MuteButton } from "../components/atari/MuteButton";
-import { QRCodeContainer } from "../components/ui/QRCodeContainer";
 import { useWallet } from "../contexts/WalletContext";
 import { useToast } from "../contexts/ToastContext";
 import { useAudio } from "../contexts/AudioContext";
-import {
-  playClick,
-  playNavigate,
-  playCelebration,
-} from "../services/tiaSoundService";
+import { playClick, playNavigate } from "../services/tiaSoundService";
 import { createHashBreaker } from "../games/HashBreaker";
 import { createPowMan } from "../games/PowMan";
 
 const ZAP_ADDRESS = "bitari2100@breez.tips";
 const ZAP_AMOUNT = 21; // sats per game
-const FREE_PLAY_KEY = "bitari_arcade_free_used";
+const FREE_PLAY_KEY_PREFIX = "bitari_arcade_free_";
 
 // Dev mode: unlimited free play on localhost
 const IS_DEV = import.meta.env.DEV;
 
-type ArcadeScreen = "menu" | "donate" | "playing" | "rom";
+type ArcadeScreen = "menu" | "playing" | "rom";
 
 interface ArcadePageProps {
   onBack: () => void;
@@ -41,18 +36,21 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   const { showToast } = useToast();
   const { muted } = useAudio();
   const [screen, setScreen] = useState<ArcadeScreen>(
-    initialGame === "rom" ? "rom" : initialGame ? "donate" : "menu",
+    initialGame === "rom" ? "rom" : initialGame ? "playing" : "menu",
   );
   const [selectedGame, setSelectedGame] = useState<string>(
     initialGame === "rom" ? "hashout" : (initialGame ?? "hashout"),
   );
   const [isZapping, setIsZapping] = useState(false);
   const [, setGameState] = useState<string>("title");
+  const [showDonateOverlay, setShowDonateOverlay] = useState(false);
   const [balanceSats, setBalanceSats] = useState<number>(0);
+  const paidRef = useRef(false); // tracks if user paid for current game session
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<{ start: () => void; stop: () => void } | null>(null);
 
-  const hasFreePlayed = sessionStorage.getItem(FREE_PLAY_KEY) === "true";
+  const freePlayKey = `${FREE_PLAY_KEY_PREFIX}${selectedGame}`;
+  const hasFreePlayed = sessionStorage.getItem(freePlayKey) === "true";
 
   // Check if user has a wallet (is authenticated)
   const hasWallet = wallet.connected();
@@ -70,16 +68,16 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     }
   }, [muted]);
 
-  // Fetch balance when donate screen opens
+  // Fetch balance when donate overlay opens
   useEffect(() => {
-    if (screen !== "donate" || !hasWallet) return;
+    if (!showDonateOverlay || !hasWallet) return;
     wallet
       .getWalletInfo()
       .then((info) => {
         if (info) setBalanceSats(info.balanceSats);
       })
       .catch(() => {});
-  }, [screen, hasWallet, wallet]);
+  }, [showDonateOverlay, hasWallet, wallet]);
 
   // --- Zap via wallet (per game) ---
   const handleZap = useCallback(async () => {
@@ -95,7 +93,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       });
       await wallet.lnurlPay({ prepareResponse });
       playClick();
-      setScreen("playing");
+      paidRef.current = true;
+      setShowDonateOverlay(false);
     } catch (err) {
       console.error("Zap failed:", err);
       showToast(
@@ -110,30 +109,33 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   // --- Free play (1 per session, unlimited in dev) ---
   const handleFreePlay = useCallback(() => {
     if (!IS_DEV) {
-      sessionStorage.setItem(FREE_PLAY_KEY, "true");
+      sessionStorage.setItem(freePlayKey, "true");
     }
     playClick();
-    setScreen("playing");
-  }, []);
+    paidRef.current = true;
+    setShowDonateOverlay(false);
+  }, [freePlayKey]);
 
-  // --- Payment confirmed (from QR invoice) ---
-  const handlePaymentConfirmed = useCallback(() => {
-    playCelebration();
-    setScreen("playing");
-  }, []);
+  // --- Game state change handler ---
+  // When game transitions from title to playing, show donate overlay if not paid
+  const handleGameStateChange = useCallback(
+    (state: string) => {
+      setGameState(state);
+      if (state === "playing" && !paidRef.current && !IS_DEV) {
+        setShowDonateOverlay(true);
+      }
+    },
+    [setGameState],
+  );
 
   // --- Start game ---
   const startPlaying = useCallback(
     (game: string) => {
       setSelectedGame(game);
+      paidRef.current = false;
       if (game === "hashout" || game === "powman") {
-        // Update URL to game-specific path
         onNavigate?.(`arcade/${game}` as "arcade/hashout" | "arcade/powman");
-        if (IS_DEV) {
-          setScreen("playing");
-        } else {
-          setScreen("donate");
-        }
+        setScreen("playing");
       }
     },
     [onNavigate],
@@ -166,7 +168,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
     const factory =
       selectedGame === "powman" ? createPowMan : createHashBreaker;
-    const game = factory(canvasRef.current, setGameState);
+    const game = factory(canvasRef.current, handleGameStateChange);
     gameRef.current = game;
     game.start();
 
@@ -197,12 +199,9 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
           onClick={() => {
             playNavigate();
-            if (
-              screen === "playing" ||
-              screen === "donate" ||
-              screen === "rom"
-            ) {
+            if (screen === "playing" || screen === "rom") {
               gameRef.current?.stop();
+              setShowDonateOverlay(false);
               setScreen("menu");
               onNavigate?.("arcade");
             } else {
@@ -224,22 +223,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
           <GameMenu onSelectGame={startPlaying} onLoadRom={handleLoadRom} />
         )}
 
-        {screen === "donate" && (
-          <DonateGate
-            wallet={wallet}
-            hasWallet={hasWallet}
-            balanceSats={balanceSats}
-            hasFreePlayed={hasFreePlayed}
-            isZapping={isZapping}
-            onZap={handleZap}
-            onFreePlay={handleFreePlay}
-            onPaymentConfirmed={handlePaymentConfirmed}
-            onCreateWallet={onCreateWallet}
-          />
-        )}
-
         {screen === "playing" && (
-          <div ref={containerRef} className="flex flex-col items-center w-full">
+          <div
+            ref={containerRef}
+            className="flex flex-col items-center w-full relative"
+          >
             <canvas
               ref={canvasRef}
               className="border-2 border-atari-darkgray"
@@ -249,6 +237,19 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
                 height: nativeH * canvasScale,
               }}
             />
+            {showDonateOverlay && (
+              <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10">
+                <DonateGate
+                  hasWallet={hasWallet}
+                  balanceSats={balanceSats}
+                  hasFreePlayed={hasFreePlayed}
+                  isZapping={isZapping}
+                  onZap={handleZap}
+                  onFreePlay={handleFreePlay}
+                  onCreateWallet={onCreateWallet}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -345,100 +346,30 @@ function GameMenu({
   );
 }
 
-// --- Donate Gate ---
+// --- Donate Gate (overlay) ---
 function DonateGate({
-  wallet,
   hasWallet,
   balanceSats,
   hasFreePlayed,
   isZapping,
   onZap,
   onFreePlay,
-  onPaymentConfirmed,
   onCreateWallet,
 }: {
-  wallet: ReturnType<typeof useWallet>;
   hasWallet: boolean;
   balanceSats: number;
   hasFreePlayed: boolean;
   isZapping: boolean;
   onZap: () => void;
   onFreePlay: () => void;
-  onPaymentConfirmed: () => void;
   onCreateWallet?: () => void;
 }) {
-  const [invoice, setInvoice] = useState<string | null>(null);
-  const [generatingInvoice, setGeneratingInvoice] = useState(false);
-  const listenerIdRef = useRef<string | null>(null);
-
-  // Generate a bolt11 invoice for 21 sats and listen for payment
-  useEffect(() => {
-    if (!hasWallet) return;
-
-    let cancelled = false;
-
-    async function setup() {
-      // Generate invoice
-      setGeneratingInvoice(true);
-      try {
-        const resp = await wallet.receivePayment({
-          paymentMethod: {
-            type: "bolt11Invoice",
-            description: "Bitari Arcade - 21 sats",
-            amountSats: ZAP_AMOUNT,
-            expirySecs: 600,
-          },
-        });
-        if (!cancelled) {
-          setInvoice(resp.paymentRequest);
-        }
-      } catch (err) {
-        console.error("Failed to generate invoice:", err);
-      } finally {
-        if (!cancelled) setGeneratingInvoice(false);
-      }
-
-      // Listen for incoming payment
-      try {
-        const listenerId = await wallet.addEventListener((event) => {
-          if (
-            event.type === "paymentSucceeded" ||
-            event.type === "paymentPending"
-          ) {
-            onPaymentConfirmed();
-          }
-        });
-        if (!cancelled) {
-          listenerIdRef.current = listenerId;
-        } else {
-          wallet.removeEventListener(listenerId).catch(() => {});
-        }
-      } catch (err) {
-        console.error("Failed to add event listener:", err);
-      }
-    }
-
-    setup();
-
-    return () => {
-      cancelled = true;
-      if (listenerIdRef.current) {
-        wallet.removeEventListener(listenerIdRef.current).catch(() => {});
-        listenerIdRef.current = null;
-      }
-    };
-  }, [hasWallet, wallet, onPaymentConfirmed]);
-
   const hasBalance = balanceSats >= ZAP_AMOUNT;
 
   return (
     <div className="flex flex-col items-center gap-5 py-6">
       <div className="font-pixel text-lg text-atari-yellow text-center">
         INSERT COIN
-      </div>
-
-      <div className="font-pixel text-xs text-atari-midgray text-center max-w-xs leading-relaxed">
-        ZAP 21 SATS TO PLAY
       </div>
 
       {/* Yellow bolt + 21 sats */}
@@ -461,41 +392,23 @@ function DonateGate({
         <span className="font-pixel text-2xl text-atari-yellow">21</span>
       </div>
 
-      {/* Zap from wallet (only if sufficient balance) */}
+      {/* Zap from wallet */}
       {hasWallet && hasBalance && (
         <AtariButton variant="primary" onClick={onZap} disabled={isZapping}>
-          {isZapping ? "ZAPPING..." : "ZAP 21 SATS"}
+          {isZapping ? "ZAPPING..." : "ZAP TO PLAY"}
         </AtariButton>
       )}
 
-      {/* QR code invoice for external payment */}
-      {hasWallet && (
-        <div className="flex flex-col items-center gap-3 mt-2">
-          {generatingInvoice && (
-            <div className="font-pixel text-xs text-atari-midgray">
-              GENERATING INVOICE...
-            </div>
-          )}
-          {invoice && (
-            <>
-              <div className="font-pixel text-xs text-atari-midgray mb-1">
-                {hasBalance ? "OR SCAN TO PAY" : "SCAN TO PAY"}
-              </div>
-              <QRCodeContainer value={invoice} size={280} />
-              <div className="font-pixel text-xs text-atari-darkgray text-center mt-1">
-                WAITING FOR PAYMENT...
-              </div>
-            </>
-          )}
+      {/* No balance — prompt to deposit */}
+      {hasWallet && !hasBalance && (
+        <div className="font-pixel text-xs text-atari-midgray text-center">
+          DEPOSIT SATS TO YOUR WALLET
         </div>
       )}
 
       {/* Wallet CTA for unauthenticated users */}
       {!hasWallet && onCreateWallet && (
-        <div className="flex flex-col items-center gap-3 mt-2">
-          <div className="font-pixel text-xs text-atari-midgray text-center max-w-xs leading-relaxed">
-            CREATE A WALLET TO ZAP
-          </div>
+        <div className="flex flex-col items-center gap-3">
           <AtariButton variant="primary" onClick={onCreateWallet}>
             CREATE WALLET
           </AtariButton>
@@ -508,8 +421,8 @@ function DonateGate({
           PLAY FREE (1 SESSION)
         </AtariButton>
       ) : (
-        <div className="font-pixel text-xs text-atari-darkgray mt-4">
-          FREE PLAY USED — ZAP TO PLAY
+        <div className="font-pixel text-xs text-atari-darkgray mt-2">
+          FREE PLAY USED
         </div>
       )}
     </div>
