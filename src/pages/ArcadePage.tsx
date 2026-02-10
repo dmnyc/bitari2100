@@ -284,7 +284,7 @@ function GameMenu({
           HASH-OUT
         </div>
         <div className="font-pixel text-sm text-atari-midgray text-center">
-          BREAKOUT-STYLE BLOCK MINING
+          BLAST BRICKS TO MINE BLOCKS
         </div>
       </button>
 
@@ -300,7 +300,7 @@ function GameMenu({
           POW-MAN
         </div>
         <div className="font-pixel text-sm text-atari-midgray text-center">
-          PAC-MAN STYLE MAZE CHASE
+          ENERGY-INTENSE MAZE PURSUIT
         </div>
       </button>
 
