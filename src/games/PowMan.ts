@@ -345,12 +345,12 @@ const BONUS_ITEMS: BonusItem[] = [
 ];
 
 // Movement speeds (pixels per frame at 60fps)
-const PLAYER_SPEED = 0.7;
-const GHOST_SPEED = 0.55;
-const GHOST_SPEED_FRIGHTENED = 0.5;
-const GHOST_SPEED_EATEN = 1.5;
-const GHOST_SPEED_TUNNEL = 0.4; // ghosts slow down in tunnels
-const SPEED_INCREMENT = 0.18; // per level
+const PLAYER_SPEED = 1.1;
+const GHOST_SPEED = 0.85;
+const GHOST_SPEED_FRIGHTENED = 0.75;
+const GHOST_SPEED_EATEN = 2.0;
+const GHOST_SPEED_TUNNEL = 0.6; // ghosts slow down in tunnels
+const SPEED_INCREMENT = 0.15; // per level
 
 // Tunnel rows (E at cols 0 and 27)
 const TUNNEL_ROWS = [4, 12];

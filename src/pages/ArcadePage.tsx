@@ -269,6 +269,21 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
                 height: nativeH * canvasScale,
               }}
             />
+            <div className="font-pixel text-xs text-atari-darkgray text-center mt-2">
+              SWIPE OR USE KEYBOARD ARROW KEYS TO PLAY
+            </div>
+            <button
+              className="font-pixel text-sm text-atari-orange hover:text-atari-yellow mt-3 py-2 px-4 border-2 border-atari-orange hover:border-atari-yellow transition-colors"
+              onClick={() => {
+                playNavigate();
+                gameRef.current?.stop();
+                setShowDonateOverlay(false);
+                setScreen("menu");
+                onNavigate?.("arcade");
+              }}
+            >
+              {"<"} BACK TO ARCADE
+            </button>
             {showDonateOverlay && (
               <div
                 className="absolute inset-0 bg-black flex items-center justify-center z-10"
