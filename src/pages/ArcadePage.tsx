@@ -486,8 +486,23 @@ function DonateGate({
           <div className="font-pixel text-lg text-atari-yellow text-center">
             TOP UP YOUR WALLET
           </div>
-          <div className="font-pixel text-xs text-atari-midgray text-center">
-            {invoiceAmount} SATS INVOICE
+          <div className="font-pixel text-xs text-atari-midgray text-center flex items-center justify-center gap-1.5">
+            <svg
+              width="8"
+              height="11"
+              viewBox="0 0 6 8"
+              shapeRendering="crispEdges"
+              className="shrink-0"
+            >
+              <rect x="1" y="0" width="4" height="1" fill="#ffff55" />
+              <rect x="1" y="1" width="3" height="1" fill="#ffff55" />
+              <rect x="0" y="2" width="3" height="1" fill="#ffff55" />
+              <rect x="0" y="3" width="5" height="1" fill="#ffff55" />
+              <rect x="2" y="4" width="2" height="1" fill="#ffff55" />
+              <rect x="1" y="5" width="2" height="1" fill="#ffff55" />
+              <rect x="0" y="6" width="2" height="1" fill="#ffff55" />
+            </svg>
+            <span className="text-atari-yellow">{invoiceAmount}</span> INVOICE
           </div>
           <QRCodeContainer value={invoiceQR} size={200} />
           <CopyableText
@@ -526,8 +541,23 @@ function DonateGate({
               key={amt}
               disabled={invoiceLoading}
               onClick={() => generateInvoice(amt)}
-              className="font-pixel text-xs text-atari-orange border-2 border-atari-orange px-3 py-2 hover:bg-atari-orange hover:text-atari-black transition-colors disabled:opacity-40"
+              className="font-pixel text-xs text-atari-orange border-2 border-atari-orange px-3 py-2 hover:bg-atari-orange hover:text-atari-black transition-colors disabled:opacity-40 flex items-center gap-1.5"
             >
+              <svg
+                width="8"
+                height="11"
+                viewBox="0 0 6 8"
+                shapeRendering="crispEdges"
+                className="shrink-0"
+              >
+                <rect x="1" y="0" width="4" height="1" fill="currentColor" />
+                <rect x="1" y="1" width="3" height="1" fill="currentColor" />
+                <rect x="0" y="2" width="3" height="1" fill="currentColor" />
+                <rect x="0" y="3" width="5" height="1" fill="currentColor" />
+                <rect x="2" y="4" width="2" height="1" fill="currentColor" />
+                <rect x="1" y="5" width="2" height="1" fill="currentColor" />
+                <rect x="0" y="6" width="2" height="1" fill="currentColor" />
+              </svg>
               {amt}
             </button>
           ))}
