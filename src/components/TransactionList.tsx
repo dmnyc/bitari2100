@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Payment } from "@breeztech/breez-sdk-spark";
 import { formatWithCommas } from "../utils/formatNumber";
+import { playClick } from "../services/tiaSoundService";
 
 const formatWithSpaces = formatWithCommas;
 
@@ -145,7 +146,10 @@ const TransactionList: React.FC<TransactionListProps> = ({
         </span>
         {onRefresh && (
           <button
-            onClick={onRefresh}
+            onClick={() => {
+              playClick();
+              onRefresh();
+            }}
             className="font-pixel text-xs sm:text-base text-atari-orange hover:text-atari-yellow tracking-wider"
           >
             REFRESH
@@ -168,7 +172,10 @@ const TransactionList: React.FC<TransactionListProps> = ({
           </div>
           {onRefresh && (
             <button
-              onClick={onRefresh}
+              onClick={() => {
+                playClick();
+                onRefresh();
+              }}
               className="font-pixel text-sm text-atari-orange border-2 border-atari-orange px-6 py-3 hover:bg-atari-orange hover:text-atari-black transition-colors"
             >
               REFRESH

@@ -4,7 +4,11 @@ import { MuteButton } from "../components/atari/MuteButton";
 import { useWallet } from "../contexts/WalletContext";
 import { useToast } from "../contexts/ToastContext";
 import { useAudio } from "../contexts/AudioContext";
-import { playClick, playNavigate } from "../services/tiaSoundService";
+import {
+  playClick,
+  playHover,
+  playNavigate,
+} from "../services/tiaSoundService";
 import { createHashBreaker } from "../games/HashBreaker";
 import { createPowMan } from "../games/PowMan";
 import { useLightningAddress } from "../features/receive/hooks/useLightningAddress";
@@ -328,6 +332,7 @@ function GameMenu({
       {/* Hash-Out */}
       <button
         className="w-full max-w-sm border-2 border-atari-darkgray p-4 hover:border-atari-orange transition-colors"
+        onPointerEnter={playHover}
         onClick={() => {
           playClick();
           onSelectGame("hashout");
@@ -344,6 +349,7 @@ function GameMenu({
       {/* POW-MAN */}
       <button
         className="w-full max-w-sm border-2 border-atari-darkgray p-4 hover:border-atari-orange transition-colors"
+        onPointerEnter={playHover}
         onClick={() => {
           playClick();
           onSelectGame("powman");
@@ -418,9 +424,13 @@ function DonateGate({
   onCreateWallet?: () => void;
   onBalanceRefresh: () => void;
 }) {
+  const wallet = useWallet();
   const { showToast } = useToast();
   const hasBalance = balanceSats >= ZAP_AMOUNT;
   const [showTopUp, setShowTopUp] = useState(false);
+  const [invoiceQR, setInvoiceQR] = useState<string | null>(null);
+  const [invoiceAmount, setInvoiceAmount] = useState<number>(0);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const {
     address: lnAddress,
     isLoading: lnLoading,
@@ -429,8 +439,8 @@ function DonateGate({
 
   // Load lightning address when top-up view opens
   useEffect(() => {
-    if (showTopUp) loadLnAddress();
-  }, [showTopUp, loadLnAddress]);
+    if (showTopUp && !invoiceQR) loadLnAddress();
+  }, [showTopUp, invoiceQR, loadLnAddress]);
 
   // Poll balance while top-up is visible
   useEffect(() => {
@@ -441,24 +451,107 @@ function DonateGate({
 
   // Auto-close top-up when balance is sufficient
   useEffect(() => {
-    if (showTopUp && hasBalance) setShowTopUp(false);
+    if (showTopUp && hasBalance) {
+      setShowTopUp(false);
+      setInvoiceQR(null);
+    }
   }, [showTopUp, hasBalance]);
 
+  const generateInvoice = async (amountSats: number) => {
+    setInvoiceLoading(true);
+    try {
+      const resp = await wallet.receivePayment({
+        paymentMethod: {
+          type: "bolt11Invoice",
+          description: `Bitari 2100 Arcade top-up (${amountSats} sats)`,
+          amountSats,
+        },
+      });
+      setInvoiceQR(resp.paymentRequest);
+      setInvoiceAmount(amountSats);
+      playClick();
+    } catch (err) {
+      console.error("Invoice generation failed:", err);
+      showToast("error", "Failed to generate invoice");
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
   if (showTopUp) {
+    // Invoice view — show the generated bolt11 QR
+    if (invoiceQR) {
+      return (
+        <div className="flex flex-col items-center gap-4 py-4 px-4 max-w-xs">
+          <div className="font-pixel text-lg text-atari-yellow text-center">
+            TOP UP YOUR WALLET
+          </div>
+          <div className="font-pixel text-xs text-atari-midgray text-center">
+            {invoiceAmount} SATS INVOICE
+          </div>
+          <QRCodeContainer value={invoiceQR} size={200} />
+          <CopyableText
+            text={invoiceQR}
+            truncate
+            label="INVOICE"
+            onCopied={() => showToast("success", "Copied!")}
+            textToCopy={invoiceQR}
+          />
+          <div className="font-pixel text-xs text-atari-midgray text-center">
+            SCAN OR COPY TO PAY
+          </div>
+          <AtariButton variant="secondary" onClick={() => setInvoiceQR(null)}>
+            BACK
+          </AtariButton>
+        </div>
+      );
+    }
+
+    // Amount selection + LN address fallback
     const addrStr = lnAddress?.lightningAddress || "";
     const lnurl = lnAddress?.lnurl || "";
     return (
       <div className="flex flex-col items-center gap-4 py-4 px-4 max-w-xs">
         <div className="font-pixel text-lg text-atari-yellow text-center">
-          TOP UP WALLET
+          TOP UP YOUR WALLET
+        </div>
+
+        {/* Preset amount buttons */}
+        <div className="font-pixel text-xs text-atari-midgray text-center">
+          GENERATE INVOICE
+        </div>
+        <div className="flex gap-3">
+          {[100, 500, 1000].map((amt) => (
+            <button
+              key={amt}
+              disabled={invoiceLoading}
+              onClick={() => generateInvoice(amt)}
+              className="font-pixel text-xs text-atari-orange border-2 border-atari-orange px-3 py-2 hover:bg-atari-orange hover:text-atari-black transition-colors disabled:opacity-40"
+            >
+              {amt}
+            </button>
+          ))}
+        </div>
+        {invoiceLoading && (
+          <div className="font-pixel text-xs text-atari-midgray">
+            GENERATING...
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="w-full border-t border-dashed border-atari-darkgray" />
+
+        {/* LN address fallback */}
+        <div className="font-pixel text-xs text-atari-midgray text-center">
+          OR SEND ANY AMOUNT
         </div>
         {lnLoading ? (
-          <div className="font-pixel text-xs text-atari-midgray py-8">
+          <div className="font-pixel text-xs text-atari-midgray py-4">
             LOADING...
           </div>
         ) : lnurl ? (
           <>
-            <QRCodeContainer value={lnurl} size={200} />
+            <QRCodeContainer value={lnurl} size={160} />
             <CopyableText
               text={addrStr}
               truncate
@@ -466,16 +559,19 @@ function DonateGate({
               onCopied={() => showToast("success", "Copied!")}
               textToCopy={addrStr}
             />
-            <div className="font-pixel text-xs text-atari-midgray text-center">
-              SEND ANY AMOUNT TO THIS ADDRESS
-            </div>
           </>
         ) : (
-          <div className="font-pixel text-xs text-atari-midgray text-center py-4">
+          <div className="font-pixel text-xs text-atari-midgray text-center py-2">
             COULD NOT LOAD ADDRESS
           </div>
         )}
-        <AtariButton variant="secondary" onClick={() => setShowTopUp(false)}>
+        <AtariButton
+          variant="secondary"
+          onClick={() => {
+            setShowTopUp(false);
+            setInvoiceQR(null);
+          }}
+        >
           BACK
         </AtariButton>
       </div>
@@ -524,7 +620,7 @@ function DonateGate({
             setShowTopUp(true);
           }}
         >
-          TOP UP WALLET
+          TOP UP YOUR WALLET
         </AtariButton>
       )}
 
