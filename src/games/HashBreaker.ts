@@ -120,6 +120,7 @@ export interface HashBreakerGame {
   start: () => void;
   stop: () => void;
   beginGame: () => void;
+  reGate: () => void;
   getState: () => GameState;
   getScore: () => number;
   getLevel: () => number;
@@ -752,6 +753,9 @@ export function createHashBreaker(
     beginGame: () => {
       gated = false;
       startGame();
+    },
+    reGate: () => {
+      gated = true;
     },
     getState: () => state,
     getScore: () => score,

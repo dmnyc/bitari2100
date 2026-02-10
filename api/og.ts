@@ -15,7 +15,7 @@ const OG_OVERRIDES: Record<
   "/arcade/powman": {
     title: "POW-MAN - Bitari 2100 Arcade",
     description:
-      "Energy-intense maze pursuit! A Pac-Man style arcade game in the Bitari 2100 retro Bitcoin wallet.",
+      "Energy-intense maze pursuit! An arcade game in the Bitari 2100 retro Bitcoin wallet.",
     image: "https://bitari2100.vercel.app/powman_social.png",
   },
 };

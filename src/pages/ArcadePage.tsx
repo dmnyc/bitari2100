@@ -51,6 +51,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     start: () => void;
     stop: () => void;
     beginGame: () => void;
+    reGate: () => void;
   } | null>(null);
 
   const freePlayKey = `${FREE_PLAY_KEY_PREFIX}${selectedGame}`;
@@ -113,9 +114,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
   // --- Free play (1 per session, unlimited in dev) ---
   const handleFreePlay = useCallback(() => {
-    if (!IS_DEV) {
-      sessionStorage.setItem(freePlayKey, "true");
-    }
+    sessionStorage.setItem(freePlayKey, "true");
     playClick();
     paidRef.current = true;
     setShowDonateOverlay(false);
@@ -124,15 +123,34 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
 
   // --- Game state change handler ---
   // When game fires "gate", show donate overlay
+  // When game over, reset paid state so next play requires payment
   const handleGameStateChange = useCallback(
     (state: string) => {
       setGameState(state);
       if (state === "gate") {
         setShowDonateOverlay(true);
+      } else if (state === "gameOver") {
+        paidRef.current = false;
+        gameRef.current?.reGate();
       }
     },
     [setGameState],
   );
+
+  // Block keyboard events reaching the game while donate overlay is up
+  useEffect(() => {
+    if (!showDonateOverlay) return;
+    const block = (e: KeyboardEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", block, true);
+    window.addEventListener("keyup", block, true);
+    return () => {
+      window.removeEventListener("keydown", block, true);
+      window.removeEventListener("keyup", block, true);
+    };
+  }, [showDonateOverlay]);
 
   // --- Start game ---
   const startPlaying = useCallback(
@@ -245,7 +263,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
               }}
             />
             {showDonateOverlay && (
-              <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10">
+              <div
+                className="absolute inset-0 bg-black flex items-center justify-center z-10"
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <DonateGate
                   hasWallet={hasWallet}
                   balanceSats={balanceSats}
