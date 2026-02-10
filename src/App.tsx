@@ -428,7 +428,6 @@ const AppContent: React.FC = () => {
     setIsConnecting(true);
     setIsRestoring(restore);
     setIsLoading(false);
-    navigateSilent("wallet");
     wallet.saveMnemonic(mnemonic);
 
     // Connect in background
@@ -577,9 +576,10 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <RestorePage
-              onConnect={(mnemonic) =>
-                connectWallet(mnemonic, true, undefined, true)
-              }
+              onConnect={(mnemonic) => {
+                connectWallet(mnemonic, true, undefined, true);
+                navigateSilent("wallet");
+              }}
               onBack={navigateToHome}
               onClearError={clearError}
             />
@@ -590,9 +590,10 @@ const AppContent: React.FC = () => {
         return (
           <Suspense fallback={<AtariLoading />}>
             <GeneratePage
-              onMnemonicConfirmed={(mnemonic) =>
-                connectWallet(mnemonic, false, undefined, true)
-              }
+              onMnemonicConfirmed={(mnemonic) => {
+                connectWallet(mnemonic, false, undefined, true);
+                navigateSilent("wallet");
+              }}
               onBack={navigateToHome}
               error={error}
               onClearError={clearError}
