@@ -250,7 +250,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-4 playing-content">
+      <div className="flex-1 overflow-y-auto p-4">
         {screen === "menu" && (
           <GameMenu onSelectGame={startPlaying} onLoadRom={handleLoadRom} />
         )}

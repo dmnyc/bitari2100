@@ -42,10 +42,10 @@ const HomePage: React.FC<HomePageProps> = ({
       <SpaceScene />
 
       {/* Push content to vertical center — min-h clears the mute toggle */}
-      <div className="flex-[2] min-h-[76px]" />
+      <div className="flex-[2] min-h-[40px] sm:min-h-[76px]" />
 
       {/* Cartridge label / logo */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <CartridgeLabel />
       </div>
 
@@ -60,7 +60,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </button>
         </div>
       ) : (
-        <div className="w-full max-w-xs space-y-4 animate-pixel-fade">
+        <div className="w-full max-w-xs space-y-3 sm:space-y-4 animate-pixel-fade">
           <AtariButton
             variant="primary"
             fullWidth
@@ -85,7 +85,7 @@ const HomePage: React.FC<HomePageProps> = ({
             RESTORE
           </AtariButton>
 
-          <div className="border-t-2 border-dashed border-atari-darkgray pt-4">
+          <div className="border-t-2 border-dashed border-atari-darkgray pt-3 sm:pt-4">
             <AtariButton
               variant="arcade"
               fullWidth
@@ -101,7 +101,7 @@ const HomePage: React.FC<HomePageProps> = ({
       )}
 
       {/* Footer — pushed to bottom */}
-      <div className="flex-[5] min-h-[24px]" />
+      <div className="flex-[3] sm:flex-[5] min-h-[16px] sm:min-h-[24px]" />
       <div className="text-center space-y-2 pb-2 mt-6">
         <a
           href="https://nostree.me/daniel"
