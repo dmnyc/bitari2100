@@ -11,6 +11,7 @@ import {
 } from "../services/tiaSoundService";
 import { createHashBreaker } from "../games/HashBreaker";
 import { createPowMan } from "../games/PowMan";
+import { createDipHopper } from "../games/DipHopper";
 import { useLightningAddress } from "../features/receive/hooks/useLightningAddress";
 import { QRCodeContainer, CopyableText } from "../components/ui";
 
@@ -27,9 +28,14 @@ interface ArcadePageProps {
   onBack: () => void;
   onCreateWallet?: () => void;
   onRestoreWallet?: () => void;
-  initialGame?: "hashout" | "powman" | "rom";
+  initialGame?: "hashout" | "powman" | "diphopper" | "rom";
   onNavigate?: (
-    screen: "arcade" | "arcade/hashout" | "arcade/powman" | "arcade/rom",
+    screen:
+      | "arcade"
+      | "arcade/hashout"
+      | "arcade/powman"
+      | "arcade/diphopper"
+      | "arcade/rom",
   ) => void;
 }
 
@@ -213,8 +219,13 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     (game: string) => {
       setSelectedGame(game);
       paidRef.current = false;
-      if (game === "hashout" || game === "powman") {
-        onNavigate?.(`arcade/${game}` as "arcade/hashout" | "arcade/powman");
+      if (game === "hashout" || game === "powman" || game === "diphopper") {
+        onNavigate?.(
+          `arcade/${game}` as
+            | "arcade/hashout"
+            | "arcade/powman"
+            | "arcade/diphopper",
+        );
         setScreen("playing");
       }
     },
@@ -226,7 +237,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   const [canvasScale, setCanvasScale] = useState(1);
 
   const nativeW = selectedGame === "powman" ? 336 : 320;
-  const nativeH = selectedGame === "powman" ? 280 : 240;
+  const nativeH =
+    selectedGame === "powman" ? 280 : selectedGame === "diphopper" ? 288 : 240;
 
   useEffect(() => {
     if (screen !== "playing" || !containerRef.current) return;
@@ -246,16 +258,30 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   useEffect(() => {
     if (screen !== "playing" || !canvasRef.current) return;
 
-    const factory =
-      selectedGame === "powman" ? createPowMan : createHashBreaker;
     const shouldGate = !IS_DEV && !paidRef.current;
-    const game = factory(canvasRef.current, handleGameStateChange, shouldGate);
+    const game =
+      selectedGame === "powman"
+        ? createPowMan(canvasRef.current, handleGameStateChange, shouldGate)
+        : selectedGame === "diphopper"
+          ? createDipHopper(
+              canvasRef.current,
+              handleGameStateChange,
+              shouldGate,
+              IS_DEV,
+            )
+          : createHashBreaker(
+              canvasRef.current,
+              handleGameStateChange,
+              shouldGate,
+            );
     gameRef.current = game;
+    (window as any).__game = game;
     game.start();
 
     return () => {
       game.stop();
       gameRef.current = null;
+      delete (window as any).__game;
     };
   }, [screen, selectedGame]);
 
@@ -431,26 +457,39 @@ function GameMenu({
         </div>
       </button>
 
-      {/* Coming soon placeholders */}
-      {[
-        "ZAP INVADERS",
-        "MOON LANDER",
-        "LUNAR ROVER",
-        "SATOSHI'S QUEST",
-        "DIP HOPPER",
-      ].map((name) => (
-        <div
-          key={name}
-          className="w-full max-w-sm border-2 border-dashed border-atari-darkgray p-4 opacity-40"
-        >
-          <div className="font-pixel text-lg sm:text-xl text-atari-midgray mb-2 text-center">
-            {name}
-          </div>
-          <div className="font-pixel text-xs text-atari-darkgray text-center">
-            COMING SOON
-          </div>
+      {/* Dip Hopper */}
+      <button
+        className="w-full max-w-sm border-2 border-atari-darkgray p-4 hover:border-atari-orange transition-colors"
+        onPointerEnter={playHover}
+        onClick={() => {
+          playClick();
+          onSelectGame("diphopper");
+        }}
+      >
+        <div className="font-pixel text-xl sm:text-2xl text-atari-yellow mb-2 text-center">
+          DIP HOPPER
         </div>
-      ))}
+        <div className="font-pixel text-sm text-atari-midgray text-center">
+          HELP PEPE LEAP TO THE CITADELS
+        </div>
+      </button>
+
+      {/* Coming soon placeholders */}
+      {["21 MILLIPEDE", "MOON LANDER", "LUNAR ROVER", "SATOSHI'S QUEST"].map(
+        (name) => (
+          <div
+            key={name}
+            className="w-full max-w-sm border-2 border-dashed border-atari-darkgray p-4 opacity-40"
+          >
+            <div className="font-pixel text-lg sm:text-xl text-atari-midgray mb-2 text-center">
+              {name}
+            </div>
+            <div className="font-pixel text-xs text-atari-darkgray text-center">
+              COMING SOON
+            </div>
+          </div>
+        ),
+      )}
 
       {/* Load ROM */}
       <div className="w-full max-w-sm mt-4 pt-4 border-t-2 border-dashed border-atari-darkgray">

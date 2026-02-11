@@ -73,6 +73,7 @@ type Screen =
   | "arcade"
   | "arcade/hashout"
   | "arcade/powman"
+  | "arcade/diphopper"
   | "arcade/rom";
 
 const SCREEN_PATHS: Record<Screen, string> = {
@@ -88,6 +89,7 @@ const SCREEN_PATHS: Record<Screen, string> = {
   arcade: "/arcade",
   "arcade/hashout": "/arcade/hashout",
   "arcade/powman": "/arcade/powman",
+  "arcade/diphopper": "/arcade/diphopper",
   "arcade/rom": "/arcade/rom",
 };
 
@@ -342,6 +344,7 @@ const AppContent: React.FC = () => {
         "arcade",
         "arcade/hashout",
         "arcade/powman",
+        "arcade/diphopper",
         "arcade/rom",
       ];
       const target =
@@ -640,6 +643,7 @@ const AppContent: React.FC = () => {
       case "arcade":
       case "arcade/hashout":
       case "arcade/powman":
+      case "arcade/diphopper":
       case "arcade/rom":
         return (
           <Suspense fallback={<AtariLoading />}>
@@ -652,9 +656,11 @@ const AppContent: React.FC = () => {
                   ? "hashout"
                   : currentScreen === "arcade/powman"
                     ? "powman"
-                    : currentScreen === "arcade/rom"
-                      ? "rom"
-                      : undefined
+                    : currentScreen === "arcade/diphopper"
+                      ? "diphopper"
+                      : currentScreen === "arcade/rom"
+                        ? "rom"
+                        : undefined
               }
               onNavigate={navigateTo}
             />
