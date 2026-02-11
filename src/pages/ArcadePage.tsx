@@ -26,6 +26,7 @@ type ArcadeScreen = "menu" | "playing" | "rom";
 interface ArcadePageProps {
   onBack: () => void;
   onCreateWallet?: () => void;
+  onRestoreWallet?: () => void;
   initialGame?: "hashout" | "powman" | "rom";
   onNavigate?: (
     screen: "arcade" | "arcade/hashout" | "arcade/powman" | "arcade/rom",
@@ -35,6 +36,7 @@ interface ArcadePageProps {
 const ArcadePage: React.FC<ArcadePageProps> = ({
   onBack,
   onCreateWallet,
+  onRestoreWallet,
   initialGame,
   onNavigate,
 }) => {
@@ -302,6 +304,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
                   onZap={handleZap}
                   onFreePlay={handleFreePlay}
                   onCreateWallet={onCreateWallet}
+                  onRestoreWallet={onRestoreWallet}
                   onBalanceRefresh={refreshBalance}
                 />
               </div>
@@ -413,6 +416,7 @@ function DonateGate({
   onZap,
   onFreePlay,
   onCreateWallet,
+  onRestoreWallet,
   onBalanceRefresh,
 }: {
   hasWallet: boolean;
@@ -422,6 +426,7 @@ function DonateGate({
   onZap: () => void;
   onFreePlay: () => void;
   onCreateWallet?: () => void;
+  onRestoreWallet?: () => void;
   onBalanceRefresh: () => void;
 }) {
   const wallet = useWallet();
@@ -658,8 +663,16 @@ function DonateGate({
       {!hasWallet && onCreateWallet && (
         <div className="flex flex-col items-center gap-3">
           <AtariButton variant="primary" onClick={onCreateWallet}>
-            CREATE WALLET
+            NEW WALLET
           </AtariButton>
+          {onRestoreWallet && (
+            <button
+              onClick={onRestoreWallet}
+              className="font-pixel text-xs text-atari-midgray hover:text-atari-orange"
+            >
+              RESTORE WALLET
+            </button>
+          )}
         </div>
       )}
 

@@ -646,6 +646,7 @@ const AppContent: React.FC = () => {
             <ArcadePage
               onBack={() => navigateTo(isConnected ? "wallet" : "home")}
               onCreateWallet={isConnected ? undefined : navigateToGenerate}
+              onRestoreWallet={isConnected ? undefined : navigateToRestore}
               initialGame={
                 currentScreen === "arcade/hashout"
                   ? "hashout"
