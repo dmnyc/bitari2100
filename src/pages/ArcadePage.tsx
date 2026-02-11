@@ -51,7 +51,9 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   );
   const [isZapping, setIsZapping] = useState(false);
   const [, setGameState] = useState<string>("title");
+  const gameStateRef = useRef<string>("title");
   const [showDonateOverlay, setShowDonateOverlay] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [balanceSats, setBalanceSats] = useState<number>(0);
   const paidRef = useRef(false); // tracks if user paid for current game session
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -60,6 +62,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     stop: () => void;
     beginGame: () => void;
     reGate: () => void;
+    pause: () => void;
+    resume: () => void;
   } | null>(null);
 
   const freePlayKey = `${FREE_PLAY_KEY_PREFIX}${selectedGame}`;
@@ -140,6 +144,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   const handleGameStateChange = useCallback(
     (state: string) => {
       setGameState(state);
+      gameStateRef.current = state;
       if (state === "gate") {
         setShowDonateOverlay(true);
       } else if (state === "gameOver") {
@@ -150,9 +155,47 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     [setGameState],
   );
 
-  // Block keyboard events reaching the game while donate overlay is up
+  // --- Exit confirmation helpers ---
+  const exitToMenu = useCallback(() => {
+    gameRef.current?.stop();
+    setShowDonateOverlay(false);
+    setShowExitConfirm(false);
+    setScreen("menu");
+    onNavigate?.("arcade");
+  }, [onNavigate]);
+
+  const handleBackFromGame = useCallback(() => {
+    playNavigate();
+    const gs = gameStateRef.current;
+    // Only confirm during active gameplay — skip for title/gate/gameOver
+    if (
+      gs === "playing" ||
+      gs === "paused" ||
+      gs === "levelClear" ||
+      gs === "ready" ||
+      gs === "dying"
+    ) {
+      gameRef.current?.pause();
+      setShowExitConfirm(true);
+    } else {
+      exitToMenu();
+    }
+  }, [exitToMenu]);
+
+  const handleExitConfirm = useCallback(() => {
+    playClick();
+    exitToMenu();
+  }, [exitToMenu]);
+
+  const handleExitCancel = useCallback(() => {
+    playClick();
+    setShowExitConfirm(false);
+    gameRef.current?.resume();
+  }, []);
+
+  // Block keyboard events reaching the game while an overlay is up
   useEffect(() => {
-    if (!showDonateOverlay) return;
+    if (!showDonateOverlay && !showExitConfirm) return;
     const block = (e: KeyboardEvent) => {
       e.stopPropagation();
       e.preventDefault();
@@ -163,7 +206,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
       window.removeEventListener("keydown", block, true);
       window.removeEventListener("keyup", block, true);
     };
-  }, [showDonateOverlay]);
+  }, [showDonateOverlay, showExitConfirm]);
 
   // --- Start game ---
   const startPlaying = useCallback(
@@ -236,13 +279,16 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
         <button
           className="font-pixel text-sm sm:text-base text-atari-midgray hover:text-atari-orange"
           onClick={() => {
-            playNavigate();
-            if (screen === "playing" || screen === "rom") {
+            if (screen === "playing") {
+              handleBackFromGame();
+            } else if (screen === "rom") {
+              playNavigate();
               gameRef.current?.stop();
               setShowDonateOverlay(false);
               setScreen("menu");
               onNavigate?.("arcade");
             } else {
+              playNavigate();
               onBack();
             }
           }}
@@ -280,16 +326,35 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
             </div>
             <button
               className="font-pixel text-sm text-atari-orange hover:text-atari-yellow mt-2 sm:mt-3 py-1.5 sm:py-2 px-4 border-2 border-atari-orange hover:border-atari-yellow transition-colors"
-              onClick={() => {
-                playNavigate();
-                gameRef.current?.stop();
-                setShowDonateOverlay(false);
-                setScreen("menu");
-                onNavigate?.("arcade");
-              }}
+              onClick={handleBackFromGame}
             >
               {"<"} BACK TO ARCADE
             </button>
+            {showExitConfirm && (
+              <div
+                className="absolute inset-0 bg-black flex flex-col items-center justify-center z-20"
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="font-pixel text-lg text-atari-yellow text-center mb-8">
+                  END GAME?
+                </div>
+                <div className="flex gap-6">
+                  <button
+                    className="font-pixel text-sm text-atari-orange border-2 border-atari-orange px-6 py-2 hover:bg-atari-orange hover:text-atari-black transition-colors"
+                    onClick={handleExitConfirm}
+                  >
+                    YES
+                  </button>
+                  <button
+                    className="font-pixel text-sm text-atari-orange border-2 border-atari-orange px-6 py-2 hover:bg-atari-orange hover:text-atari-black transition-colors"
+                    onClick={handleExitCancel}
+                  >
+                    NO
+                  </button>
+                </div>
+              </div>
+            )}
             {showDonateOverlay && (
               <div
                 className="absolute inset-0 bg-black flex items-center justify-center z-10"

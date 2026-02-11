@@ -121,6 +121,8 @@ export interface HashBreakerGame {
   stop: () => void;
   beginGame: () => void;
   reGate: () => void;
+  pause: () => void;
+  resume: () => void;
   getState: () => GameState;
   getScore: () => number;
   getLevel: () => number;
@@ -213,6 +215,7 @@ export function createHashBreaker(
   let animFrame = 0;
   let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
+  let pauseStart = 0;
 
   // Input state
   const keys: Record<string, boolean> = {};
@@ -756,6 +759,19 @@ export function createHashBreaker(
     },
     reGate: () => {
       gated = true;
+    },
+    pause: () => {
+      if (state === "playing") {
+        pauseStart = Date.now();
+        setState("paused");
+      }
+    },
+    resume: () => {
+      if (state === "paused") {
+        const d = Date.now() - pauseStart;
+        if (powerUpEndTime > 0) powerUpEndTime += d;
+        setState("playing");
+      }
     },
     getState: () => state,
     getScore: () => score,

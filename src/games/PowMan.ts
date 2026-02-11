@@ -440,8 +440,8 @@ const GHOST_DEFS: GhostDef[] = [
   {
     name: "HATEY",
     color: C.redLit,
-    startCol: 14,
-    startRow: 11, // starts in pen, exits first
+    startCol: 13,
+    startRow: 12, // closest to door, exits first
     scatterCol: 25,
     scatterRow: 0,
     penDelay: 500,
@@ -449,8 +449,8 @@ const GHOST_DEFS: GhostDef[] = [
   {
     name: "FUDDY",
     color: C.pinkLit,
-    startCol: 13,
-    startRow: 11,
+    startCol: 14,
+    startRow: 12, // closest to door, exits second
     scatterCol: 2,
     scatterRow: 0,
     penDelay: GHOST_PEN_RELEASE_INTERVAL,
@@ -458,8 +458,8 @@ const GHOST_DEFS: GhostDef[] = [
   {
     name: "SCAMMY",
     color: C.cyanLit,
-    startCol: 14,
-    startRow: 11,
+    startCol: 13,
+    startRow: 11, // back of pen, exits third
     scatterCol: 27,
     scatterRow: 21,
     penDelay: GHOST_PEN_RELEASE_INTERVAL * 2,
@@ -467,8 +467,8 @@ const GHOST_DEFS: GhostDef[] = [
   {
     name: "PETER",
     color: C.greenLit,
-    startCol: 13,
-    startRow: 12,
+    startCol: 14,
+    startRow: 11, // back of pen, exits last
     scatterCol: 0,
     scatterRow: 21,
     penDelay: GHOST_PEN_RELEASE_INTERVAL * 3,
@@ -507,6 +507,8 @@ export interface PowManGame {
   stop: () => void;
   beginGame: () => void;
   reGate: () => void;
+  pause: () => void;
+  resume: () => void;
   getState: () => GameState;
   getScore: () => number;
   getLevel: () => number;
@@ -948,10 +950,11 @@ export function createPowMan(
 
     powerEndTime = Date.now() + frightDur;
     for (const g of ghosts) {
-      if (!g.inPen && !g.leavingPen && g.mode !== "eaten") {
-        g.prevMode = g.mode;
-        g.mode = "frightened";
-        // Reverse direction
+      if (g.mode === "eaten") continue;
+      g.prevMode = g.mode;
+      g.mode = "frightened";
+      // Reverse direction for active ghosts (not penned ones)
+      if (!g.inPen && !g.leavingPen) {
         g.dir = { dx: -g.dir.dx, dy: -g.dir.dy } as Direction;
       }
     }
@@ -1110,7 +1113,9 @@ export function createPowMan(
         // Once past the door (row 14), become a normal ghost
         if (ghost.row >= 14) {
           ghost.leavingPen = false;
-          ghost.mode = globalMode;
+          ghost.mode = powerEndTime > Date.now() ? "frightened" : globalMode;
+          // Pick a valid horizontal direction so the ghost doesn't walk into the wall below
+          ghost.dir = Math.random() < 0.5 ? DIR.LEFT : DIR.RIGHT;
         }
       }
       return;
@@ -2066,6 +2071,17 @@ export function createPowMan(
     },
     reGate: () => {
       gated = true;
+    },
+    pause: () => {
+      if (state === "playing") {
+        pauseStart = Date.now();
+        setState("paused");
+      }
+    },
+    resume: () => {
+      if (state === "paused") {
+        resumeFromPause();
+      }
     },
     getState: () => state,
     getScore: () => score,
