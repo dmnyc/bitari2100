@@ -84,11 +84,11 @@ function rowY(row: number): number {
 }
 
 // --- Speed scaling ---
-const BASE_LAMBO_SPEED = 1.2;
-const BASE_TRAIN_SPEED = 0.8;
-const BASE_CANYON_SPEED = 0.5;
-const BASE_ROCKET_SPEED = 2.5;
-const SPEED_PER_LEVEL = 0.12;
+const BASE_LAMBO_SPEED = 0.7;
+const BASE_TRAIN_SPEED = 0.5;
+const BASE_CANYON_SPEED = 0.3;
+const BASE_ROCKET_SPEED = 1.8;
+const SPEED_PER_LEVEL = 0.08;
 
 // --- Car colors for lambos ---
 const LAMBO_COLORS = [
@@ -128,7 +128,7 @@ function buildTrainPattern(): TrainSegment[] {
 
 // --- Canyon platform types ---
 type PlatformType = "coin" | "cloud" | "rocket" | "shitcoin";
-type ShitcoinVariant = "eth" | "xrp";
+type ShitcoinVariant = "eth" | "xrp" | "doge" | "sol" | "ltc";
 type CoinState = "floating" | "warning" | "falling" | "gone" | "rising";
 
 interface CanyonPlatform {
@@ -173,6 +173,7 @@ export interface DipHopperGame {
   getScore: () => number;
   getLevel: () => number;
   getLives: () => number;
+  setLevel: (n: number) => void;
 }
 
 // --- TIA sound helpers ---
@@ -240,6 +241,7 @@ export function createDipHopper(
   canvas: HTMLCanvasElement,
   onStateChange?: (state: GameState) => void,
   gated = true,
+  devMode = false,
 ): DipHopperGame {
   const ctx = canvas.getContext("2d")!;
   canvas.width = GAME_W;
@@ -270,7 +272,7 @@ export function createDipHopper(
   let highestRow = 0; // highest row reached this life (for scoring)
 
   // Per-life countdown timer (Frogger-style)
-  const LIFE_TIME = 30_000; // 30 seconds per life
+  const LIFE_TIME = 45_000; // 45 seconds per life
   let lifeTimer = LIFE_TIME;
 
   // Female Pepe bonus (appears randomly at an empty citadel)
@@ -315,14 +317,16 @@ export function createDipHopper(
   function initLambos() {
     const s = speedScale();
     const carW = 28;
-    const minGap = 40; // minimum gap between cars so they never overlap
+    // Gap shrinks with level: 90px at L1 down to 60px by L6+
+    const minGap = Math.max(60, 90 - (level - 1) * 6);
+    // Cars: 2 at L1, 3 at L3+ (difficulty comes from speed, not density)
+    const numCars = level <= 2 ? 2 : 3;
 
     // Lane 1: cars going right
     lamboLane1 = [];
-    const numCars1 = 3 + Math.min(level - 1, 3);
-    const spacing1 = Math.max(carW + minGap, GAME_W / numCars1);
+    const spacing1 = Math.max(carW + minGap, GAME_W / numCars);
     const laneSpeed1 = BASE_LAMBO_SPEED * s * (1 + Math.random() * 0.2);
-    for (let i = 0; i < numCars1; i++) {
+    for (let i = 0; i < numCars; i++) {
       lamboLane1.push({
         x: i * spacing1,
         width: carW,
@@ -332,10 +336,9 @@ export function createDipHopper(
     }
     // Lane 2: cars going left (slightly different speed)
     lamboLane2 = [];
-    const numCars2 = 3 + Math.min(level - 1, 3);
-    const spacing2 = Math.max(carW + minGap, GAME_W / numCars2);
+    const spacing2 = Math.max(carW + minGap, GAME_W / numCars);
     const laneSpeed2 = BASE_LAMBO_SPEED * s * (1.1 + Math.random() * 0.2);
-    for (let i = 0; i < numCars2; i++) {
+    for (let i = 0; i < numCars; i++) {
       lamboLane2.push({
         x: i * spacing2,
         width: carW,
@@ -367,6 +370,12 @@ export function createDipHopper(
       // Place 3-5 platforms per lane
       const count = 3 + Math.floor(Math.random() * 3);
       const spacing = GAME_W / count;
+      function pickShitcoin(): ShitcoinVariant {
+        const pool: ShitcoinVariant[] = ["eth", "xrp"];
+        if (level >= 4) pool.push("doge");
+        if (level >= 5) pool.push("sol", "ltc");
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
       for (let i = 0; i < count; i++) {
         const roll = Math.random();
         // ~25% bitcoin, ~10% shitcoin (level 3+), rest clouds
@@ -389,21 +398,18 @@ export function createDipHopper(
           coinState: "floating",
           coinTimer: type !== "cloud" ? 2000 + Math.random() * floatDur : 0,
           coinCycle: Math.max(2000, floatDur),
-          shitcoinVariant: isShitcoin
-            ? Math.random() < 0.5
-              ? "eth"
-              : "xrp"
-            : undefined,
+          shitcoinVariant: isShitcoin ? pickShitcoin() : undefined,
           stormy: false,
           stormTimer: canStorm ? 3000 + Math.random() * 5000 : -1, // -1 = never storms
         });
       }
 
-      // Rocket on canyon lane 3 (index 2)
+      // Rocket on canyon lane 3 (index 2) — starts far off-screen, rarer at low levels
       if (lane === 2) {
+        const rocketGap = GAME_W * (3 - Math.min(level - 1, 4) * 0.4);
         platforms.push({
           type: "rocket",
-          x: -40,
+          x: dir > 0 ? -rocketGap : GAME_W + rocketGap,
           width: 24,
           speed: BASE_ROCKET_SPEED * s * dir,
           coinState: "floating",
@@ -691,16 +697,20 @@ export function createDipHopper(
       for (const plat of canyonLanes[lane]) {
         plat.x += plat.speed;
 
-        // Wrap horizontally
+        // Wrap horizontally (rockets get extra gap)
+        const wrapGap =
+          plat.type === "rocket"
+            ? GAME_W * (2 - Math.min(level - 1, 4) * 0.3)
+            : 20;
         if (plat.speed > 0 && plat.x > GAME_W + 20) {
-          plat.x = -plat.width - 20;
+          plat.x = -plat.width - wrapGap;
           if (plat.type === "coin" || plat.type === "shitcoin") {
             plat.coinState = "floating";
             plat.coinTimer = 2000 + Math.random() * plat.coinCycle;
           }
         }
         if (plat.speed < 0 && plat.x + plat.width < -20) {
-          plat.x = GAME_W + 20;
+          plat.x = GAME_W + wrapGap;
           if (plat.type === "coin" || plat.type === "shitcoin") {
             plat.coinState = "floating";
             plat.coinTimer = 2000 + Math.random() * plat.coinCycle;
@@ -1089,13 +1099,15 @@ export function createDipHopper(
     // Train
     drawTrain();
 
-    // Canyon platforms
+    // Canyon platforms — draw clouds first, then coins/shitcoins on top, rockets last
     for (let lane = 0; lane < 3; lane++) {
       const ly = rowY(ROW_CANYON_1 + lane);
       for (const plat of canyonLanes[lane]) {
+        if (plat.type === "cloud") drawCloud(plat, ly);
+      }
+      for (const plat of canyonLanes[lane]) {
         if (plat.type === "coin") drawCoin(plat, ly);
         else if (plat.type === "shitcoin") drawShitcoin(plat, ly);
-        else if (plat.type === "cloud") drawCloud(plat, ly);
         else if (plat.type === "rocket") drawRocket(plat, ly);
       }
     }
@@ -1321,21 +1333,99 @@ export function createDipHopper(
     const r = Math.floor(8 * scale);
     if (r < 1) return;
 
-    const isEth = plat.shitcoinVariant === "eth";
+    const v = plat.shitcoinVariant;
 
-    // Coin circle
-    ctx.fillStyle = flash ? C.white : isEth ? C.purpleLit : C.darkgray;
+    // Coin circle — color per variant
+    const circleColor =
+      v === "eth"
+        ? "#7b7fc4"
+        : v === "xrp"
+          ? "#23292f"
+          : v === "doge"
+            ? "#c2a633"
+            : v === "sol"
+              ? "#14f195"
+              : /* ltc */ "#b8b8b8";
+    ctx.fillStyle = flash ? C.white : circleColor;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // Symbol
+    // Symbol per variant
     if (r > 3) {
-      ctx.fillStyle = flash ? C.midgray : isEth ? C.white : C.lightgray;
-      ctx.font = `${Math.max(6, Math.floor(10 * scale))}px "Press Start 2P", monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(isEth ? "E" : "X", cx, cy + 1);
+      if (v === "eth") {
+        // Ethereum diamond logo
+        const s = scale;
+        const top = cy - Math.floor(6 * s);
+        const mid = cy - Math.floor(1 * s);
+        const bot = cy + Math.floor(7 * s);
+        const hw = Math.floor(4 * s);
+
+        ctx.fillStyle = flash ? C.midgray : "#c8c8f0";
+        ctx.beginPath();
+        ctx.moveTo(cx, top);
+        ctx.lineTo(cx - hw, mid);
+        ctx.lineTo(cx, mid - Math.floor(1 * s));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = flash ? C.lightgray : C.white;
+        ctx.beginPath();
+        ctx.moveTo(cx, top);
+        ctx.lineTo(cx + hw, mid);
+        ctx.lineTo(cx, mid - Math.floor(1 * s));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = flash ? C.midgray : "#9898d0";
+        ctx.beginPath();
+        ctx.moveTo(cx, bot);
+        ctx.lineTo(cx - hw, mid);
+        ctx.lineTo(cx, mid - Math.floor(1 * s));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = flash ? C.lightgray : "#b8b8e8";
+        ctx.beginPath();
+        ctx.moveTo(cx, bot);
+        ctx.lineTo(cx + hw, mid);
+        ctx.lineTo(cx, mid - Math.floor(1 * s));
+        ctx.closePath();
+        ctx.fill();
+      } else if (v === "doge") {
+        // Dogecoin: Ð on golden circle
+        ctx.fillStyle = flash ? C.midgray : "#fff8dc";
+        ctx.font = `bold ${Math.max(6, Math.floor(11 * scale))}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Ð", cx, cy + 1);
+      } else if (v === "sol") {
+        // Solana: slanted S-bars — 3 horizontal bars tilted
+        const s = scale;
+        const bw = Math.floor(6 * s);
+        const bh = Math.max(1, Math.floor(2 * s));
+        const skew = Math.floor(2 * s);
+        ctx.fillStyle = flash ? C.midgray : "#0d0d0d";
+        for (let bi = -1; bi <= 1; bi++) {
+          const by = cy + bi * Math.floor(3 * s) - bh / 2;
+          const bx = cx - bw / 2 - bi * skew;
+          ctx.fillRect(bx, by, bw, bh);
+        }
+      } else if (v === "ltc") {
+        // Litecoin: Ł on silver circle
+        ctx.fillStyle = flash ? C.midgray : "#3a3a3a";
+        ctx.font = `bold ${Math.max(6, Math.floor(11 * scale))}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Ł", cx, cy + 1);
+      } else {
+        // XRP: text "X"
+        ctx.fillStyle = flash ? C.midgray : C.lightgray;
+        ctx.font = `${Math.max(6, Math.floor(10 * scale))}px "Press Start 2P", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("X", cx, cy + 1);
+      }
     }
   }
 
@@ -1388,10 +1478,17 @@ export function createDipHopper(
     ctx.fillStyle = C.redHot;
     ctx.fillRect(rx, ry + 4, plat.width, 10);
 
-    // Nose
+    // Pointy nose cone
     ctx.fillStyle = C.bright;
-    const noseX = facing > 0 ? rx + plat.width : rx - 4;
-    ctx.fillRect(noseX, ry + 6, 4, 6);
+    if (facing > 0) {
+      ctx.fillRect(rx + plat.width, ry + 5, 3, 8);
+      ctx.fillRect(rx + plat.width + 3, ry + 7, 2, 4);
+      ctx.fillRect(rx + plat.width + 5, ry + 8, 1, 2);
+    } else {
+      ctx.fillRect(rx - 3, ry + 5, 3, 8);
+      ctx.fillRect(rx - 5, ry + 7, 2, 4);
+      ctx.fillRect(rx - 6, ry + 8, 1, 2);
+    }
 
     // Flame trail
     const flameX = facing > 0 ? rx - 8 : rx + plat.width;
@@ -1400,6 +1497,12 @@ export function createDipHopper(
     ctx.fillRect(flameX, ry + 6, 8, 6);
     ctx.fillStyle = flicker ? C.orangeHot : C.redLit;
     ctx.fillRect(flameX + (facing > 0 ? -4 : 8), ry + 8, 4, 2);
+
+    // Tail fins (at rear end)
+    ctx.fillStyle = C.redLit;
+    const finX = facing > 0 ? rx : rx + plat.width - 3;
+    ctx.fillRect(finX, ry + 2, 3, 3); // top fin
+    ctx.fillRect(finX, ry + 13, 3, 3); // bottom fin
 
     // Window
     ctx.fillStyle = C.blueSky;
@@ -1557,14 +1660,19 @@ export function createDipHopper(
     ctx.fillRect(sx + sw - 3, eyeY + eyeH, 2, 2);
     ctx.globalAlpha = 1;
 
-    // Cute smile with lipstick
+    // Fuller lips with lipstick
     if (sh > 6) {
-      const lipY = sy + Math.floor(sh * 0.65);
+      const lipY = sy + Math.floor(sh * 0.6);
+      // Upper lip
+      ctx.fillStyle = C.redHot;
+      ctx.fillRect(sx + 2, lipY, sw - 4, 1);
+      // Smile curve at corners
+      ctx.fillRect(sx + 1, lipY - 1, 1, 1);
+      ctx.fillRect(sx + sw - 2, lipY - 1, 1, 1);
+      // Full lower lip
       ctx.fillStyle = C.pinkLit;
-      ctx.fillRect(sx + 3, lipY, sw - 6, 1);
-      // Slight smile curve
-      ctx.fillRect(sx + 2, lipY - 1, 1, 1);
-      ctx.fillRect(sx + sw - 3, lipY - 1, 1, 1);
+      ctx.fillRect(sx + 3, lipY + 1, sw - 6, 2);
+      ctx.fillRect(sx + 2, lipY + 1, sw - 4, 1);
     }
   }
 
@@ -1630,7 +1738,7 @@ export function createDipHopper(
     // Pepe preview
     drawPepeSprite(GAME_W / 2 - 16, 80, 32, 32);
 
-    drawText("HELP PEPE CROSS", GAME_W / 2, 130, C.bright, 8);
+    drawText("HELP PEPE LEAP", GAME_W / 2, 130, C.bright, 8);
     drawText("TO THE CITADELS", GAME_W / 2, 145, C.bright, 8);
 
     drawText("DODGE THE LAMBOS!", GAME_W / 2, 170, C.orangeHot, 10);
@@ -1697,6 +1805,14 @@ export function createDipHopper(
         tryStart();
         e.preventDefault();
       }
+      return;
+    }
+
+    // Dev: number keys 1-9 jump to that level
+    if (devMode && e.key >= "1" && e.key <= "9" && state === "playing") {
+      level = parseInt(e.key, 10);
+      initLevel();
+      resetPepe();
       return;
     }
 
@@ -1836,5 +1952,12 @@ export function createDipHopper(
     getScore: () => score,
     getLevel: () => level,
     getLives: () => lives,
+    /** Dev hook: jump to a specific level mid-game */
+    setLevel: (n: number) => {
+      level = Math.max(1, Math.floor(n));
+      initLevel();
+      resetPepe();
+      if (state !== "playing") setState("playing");
+    },
   };
 }

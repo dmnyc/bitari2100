@@ -8,6 +8,10 @@
       "source": "/arcade/powman",
       "destination": "/api/og?path=/arcade/powman"
     },
+    {
+      "source": "/arcade/diphopper",
+      "destination": "/api/og?path=/arcade/diphopper"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

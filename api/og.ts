@@ -18,6 +18,12 @@ const OG_OVERRIDES: Record<
       "Energy-intense maze pursuit! An arcade game in the Bitari 2100 retro Bitcoin wallet.",
     image: "https://bitari2100.vercel.app/powman_social.png",
   },
+  "/arcade/diphopper": {
+    title: "Dip Hopper - Bitari 2100 Arcade",
+    description:
+      "Help Pepe leap to the citadels! A Frogger-style arcade game in the Bitari 2100 retro Bitcoin wallet.",
+    image: "https://bitari2100.vercel.app/diphopper_social.png",
+  },
 };
 
 const CRAWLER_RE =

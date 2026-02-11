@@ -258,20 +258,30 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
   useEffect(() => {
     if (screen !== "playing" || !canvasRef.current) return;
 
-    const factory =
-      selectedGame === "powman"
-        ? createPowMan
-        : selectedGame === "diphopper"
-          ? createDipHopper
-          : createHashBreaker;
     const shouldGate = !IS_DEV && !paidRef.current;
-    const game = factory(canvasRef.current, handleGameStateChange, shouldGate);
+    const game =
+      selectedGame === "powman"
+        ? createPowMan(canvasRef.current, handleGameStateChange, shouldGate)
+        : selectedGame === "diphopper"
+          ? createDipHopper(
+              canvasRef.current,
+              handleGameStateChange,
+              shouldGate,
+              IS_DEV,
+            )
+          : createHashBreaker(
+              canvasRef.current,
+              handleGameStateChange,
+              shouldGate,
+            );
     gameRef.current = game;
+    (window as any).__game = game;
     game.start();
 
     return () => {
       game.stop();
       gameRef.current = null;
+      delete (window as any).__game;
     };
   }, [screen, selectedGame]);
 
@@ -460,7 +470,7 @@ function GameMenu({
           DIP HOPPER
         </div>
         <div className="font-pixel text-sm text-atari-midgray text-center">
-          HELP PEPE CROSS TO THE CITADELS
+          HELP PEPE LEAP TO THE CITADELS
         </div>
       </button>
 
