@@ -526,7 +526,7 @@ export function createDipHopper(
     const laneIdx = row - ROW_CANYON_1;
     if (laneIdx < 0 || laneIdx >= 3) return null;
 
-    const px = pepeScreenX();
+    const cx = pepeScreenX() + PEPE_W / 2; // use Pepe's center
     const platforms = canyonLanes[laneIdx];
     let best: CanyonPlatform | null = null;
     for (const plat of platforms) {
@@ -537,7 +537,7 @@ export function createDipHopper(
           plat.coinState === "rising")
       )
         continue;
-      if (px + PEPE_W > plat.x && px < plat.x + plat.width) {
+      if (cx >= plat.x && cx < plat.x + plat.width) {
         if (plat.type === "rocket") return plat; // rocket always wins
         if (!best) best = plat;
       }
@@ -799,7 +799,8 @@ export function createDipHopper(
         if (laneIdx >= 0 && laneIdx < 3) {
           for (const p of canyonLanes[laneIdx]) {
             if (p.type !== "rocket" || p === ridingPlat) continue;
-            if (pepeX + PEPE_W > p.x && pepeX < p.x + p.width) {
+            const cx = pepeX + PEPE_W / 2;
+            if (cx >= p.x && cx < p.x + p.width) {
               die("splat");
               return;
             }
