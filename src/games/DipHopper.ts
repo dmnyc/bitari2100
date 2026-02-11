@@ -140,6 +140,7 @@ interface CanyonPlatform {
   coinTimer: number; // ms until next state transition
   coinCycle: number; // ms of full float duration before next fall
   shitcoinVariant?: ShitcoinVariant; // eth or xrp (for shitcoins)
+  collected: boolean; // coin already scored (prevents double-collect)
   stormy: boolean; // cloud is currently stormy (kills on contact)
   stormTimer: number; // ms until storm state toggles
 }
@@ -269,6 +270,7 @@ export function createDipHopper(
   let pepeDir: "up" | "down" | "left" | "right" = "up"; // used for sprite facing
   let dyingTimer = 0;
   let dyingType: "splat" | "fall" = "splat";
+  let timedOut = false;
   let highestRow = 0; // highest row reached this life (for scoring)
 
   // Per-life countdown timer (Frogger-style)
@@ -399,6 +401,7 @@ export function createDipHopper(
           coinTimer: type !== "cloud" ? 2000 + Math.random() * floatDur : 0,
           coinCycle: Math.max(2000, floatDur),
           shitcoinVariant: isShitcoin ? pickShitcoin() : undefined,
+          collected: false,
           stormy: false,
           stormTimer: canStorm ? 3000 + Math.random() * 5000 : -1, // -1 = never storms
         });
@@ -415,6 +418,7 @@ export function createDipHopper(
           coinState: "floating",
           coinTimer: 0,
           coinCycle: 0,
+          collected: false,
           stormy: false,
           stormTimer: -1,
         });
@@ -444,6 +448,7 @@ export function createDipHopper(
     pepeHopProgress = 0;
     pepeDir = "up";
     lifeTimer = LIFE_TIME;
+    timedOut = false;
   }
 
   // --- Collision helpers ---
@@ -532,9 +537,7 @@ export function createDipHopper(
     for (const plat of platforms) {
       if (
         (plat.type === "coin" || plat.type === "shitcoin") &&
-        (plat.coinState === "gone" ||
-          plat.coinState === "falling" ||
-          plat.coinState === "rising")
+        (plat.coinState === "gone" || plat.coinState === "rising")
       )
         continue;
       if (cx >= plat.x && cx < plat.x + plat.width) {
@@ -569,6 +572,7 @@ export function createDipHopper(
     // Life countdown timer
     lifeTimer -= 16.67;
     if (lifeTimer <= 0) {
+      timedOut = true;
       die("fall");
       return;
     }
@@ -617,10 +621,17 @@ export function createDipHopper(
             gameTone(150, 0.15, 0.12);
             // Death handled next frame when falling coin check runs
           }
-          // Bonus for landing on a bitcoin coin
-          if (plat && plat.type === "coin" && plat.coinState === "floating") {
+          // Bonus for landing on a bitcoin coin (floating or warning)
+          if (
+            plat &&
+            plat.type === "coin" &&
+            (plat.coinState === "floating" || plat.coinState === "warning") &&
+            !plat.collected
+          ) {
             score += 25;
-            gameTone(660, 0.06, 0.1);
+            plat.collected = true;
+            gameTone(880, 0.12, 0.15);
+            setTimeout(() => gameTone(1100, 0.1, 0.12), 60);
           }
           // Stormy cloud — die on landing
           if (plat && plat.type === "cloud" && plat.stormy) {
@@ -707,6 +718,7 @@ export function createDipHopper(
           if (plat.type === "coin" || plat.type === "shitcoin") {
             plat.coinState = "floating";
             plat.coinTimer = 2000 + Math.random() * plat.coinCycle;
+            plat.collected = false;
           }
         }
         if (plat.speed < 0 && plat.x + plat.width < -20) {
@@ -714,6 +726,27 @@ export function createDipHopper(
           if (plat.type === "coin" || plat.type === "shitcoin") {
             plat.coinState = "floating";
             plat.coinTimer = 2000 + Math.random() * plat.coinCycle;
+            plat.collected = false;
+          }
+        }
+
+        // Collected coin falls away once Pepe drifts off it
+        if (
+          plat.type === "coin" &&
+          plat.collected &&
+          plat.coinState === "floating" &&
+          !pepeHopping
+        ) {
+          const pepeInLane = pepeRow - ROW_CANYON_1 === lane;
+          if (!pepeInLane) {
+            plat.coinState = "warning";
+            plat.coinTimer = 800;
+          } else {
+            const cx = pepeX + PEPE_W / 2;
+            if (cx < plat.x || cx >= plat.x + plat.width) {
+              plat.coinState = "warning";
+              plat.coinTimer = 800;
+            }
           }
         }
 
@@ -736,6 +769,7 @@ export function createDipHopper(
           } else if (plat.coinState === "rising" && plat.coinTimer <= 0) {
             plat.coinState = "floating";
             plat.coinTimer = 2000 + Math.random() * plat.coinCycle;
+            plat.collected = false;
           }
         }
 
@@ -765,13 +799,28 @@ export function createDipHopper(
 
         // Riding a rocket = immune to everything
         if (plat.type !== "rocket") {
-          // Check if coin/shitcoin is falling under us
+          // Check if coin/shitcoin has vanished under us
           if (
             (plat.type === "coin" || plat.type === "shitcoin") &&
-            (plat.coinState === "falling" || plat.coinState === "gone")
+            plat.coinState === "gone"
           ) {
-            die("fall");
-            return;
+            // Check for a cloud underneath that can save us
+            const cx = pepeX + PEPE_W / 2;
+            const laneIdx = pepeRow - ROW_CANYON_1;
+            const cloudBelow = canyonLanes[laneIdx]?.find(
+              (p) => p.type === "cloud" && cx >= p.x && cx < p.x + p.width,
+            );
+            if (cloudBelow) {
+              // Land on the cloud — ride it instead
+              pepeX += cloudBelow.speed - plat.speed; // adjust for cloud speed
+              if (cloudBelow.stormy) {
+                die("splat");
+                return;
+              }
+            } else {
+              die("fall");
+              return;
+            }
           }
 
           // Stormy cloud kills
@@ -779,11 +828,45 @@ export function createDipHopper(
             die("splat");
             return;
           }
+
+          // Collect floating bitcoins that overlap Pepe while riding a cloud
+          if (plat.type === "cloud") {
+            const cx = pepeX + PEPE_W / 2;
+            const laneIdx = pepeRow - ROW_CANYON_1;
+            for (const p of canyonLanes[laneIdx]) {
+              if (
+                p.type === "coin" &&
+                (p.coinState === "floating" || p.coinState === "warning") &&
+                !p.collected &&
+                cx >= p.x &&
+                cx < p.x + p.width
+              ) {
+                score += 25;
+                p.collected = true;
+                gameTone(880, 0.12, 0.15);
+                setTimeout(() => gameTone(1100, 0.1, 0.12), 60);
+              }
+            }
+          }
         }
       } else {
         // No platform = fall into canyon
-        die("fall");
-        return;
+        // Check if there's a cloud we missed (center between platforms)
+        const cx = pepeX + PEPE_W / 2;
+        const laneIdx = pepeRow - ROW_CANYON_1;
+        const cloudBelow =
+          laneIdx >= 0 && laneIdx < 3
+            ? canyonLanes[laneIdx]?.find(
+                (p) => p.type === "cloud" && cx >= p.x && cx < p.x + p.width,
+              )
+            : null;
+        if (cloudBelow && !cloudBelow.stormy) {
+          pepeX += cloudBelow.speed;
+          pepeTargetX = pepeX;
+        } else {
+          die("fall");
+          return;
+        }
       }
 
       // Pepe carried off screen
@@ -906,6 +989,24 @@ export function createDipHopper(
     if (newRow === ROW_CITADEL) {
       const ci = getCitadelIndex(newX);
       if (ci >= 0 && citadels[ci]) return; // blocked
+    }
+
+    // Trigger fall on any collected coin Pepe is leaving
+    if (pepeRow >= ROW_CANYON_1 && pepeRow <= ROW_CANYON_3) {
+      const cx = pepeX + PEPE_W / 2;
+      const laneIdx = pepeRow - ROW_CANYON_1;
+      for (const p of canyonLanes[laneIdx]) {
+        if (
+          p.type === "coin" &&
+          p.collected &&
+          p.coinState === "floating" &&
+          cx >= p.x &&
+          cx < p.x + p.width
+        ) {
+          p.coinState = "warning";
+          p.coinTimer = 800;
+        }
+      }
     }
 
     pepeDir = dy > 0 ? "up" : dy < 0 ? "down" : dx > 0 ? "right" : "left";
@@ -1537,6 +1638,11 @@ export function createDipHopper(
         ctx.globalAlpha = scale;
         drawPepeSprite(px + (PEPE_W - w) / 2, py + (PEPE_H - h) / 2, w, h);
         ctx.globalAlpha = 1;
+      }
+      if (timedOut) {
+        ctx.fillStyle = C.black;
+        ctx.fillRect(0, GAME_H / 2 - 4, GAME_W, 24);
+        drawText("TIME'S UP!", GAME_W / 2, GAME_H / 2, C.yellowBright, 14);
       }
       return;
     }
