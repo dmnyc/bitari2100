@@ -274,7 +274,7 @@ export function createDipHopper(
   let highestRow = 0; // highest row reached this life (for scoring)
 
   // Per-life countdown timer (Frogger-style)
-  const LIFE_TIME = 45_000; // 45 seconds per life
+  const LIFE_TIME = 60_000; // 60 seconds per life
   let lifeTimer = LIFE_TIME;
 
   // Female Pepe bonus (appears randomly at an empty citadel)
