@@ -88,7 +88,8 @@ const BASE_LAMBO_SPEED = 0.7;
 const BASE_TRAIN_SPEED = 0.5;
 const BASE_CANYON_SPEED = 0.3;
 const BASE_ROCKET_SPEED = 1.8;
-const SPEED_PER_LEVEL = 0.08;
+const SPEED_PER_LEVEL = 0.06;
+const MAX_SPEED_SCALE = 1.6; // cap at 60% faster than base
 
 // --- Car colors for lambos ---
 const LAMBO_COLORS = [
@@ -309,7 +310,7 @@ export function createDipHopper(
 
   // --- Level setup ---
   function speedScale(): number {
-    return 1 + (level - 1) * SPEED_PER_LEVEL;
+    return Math.min(MAX_SPEED_SCALE, 1 + (level - 1) * SPEED_PER_LEVEL);
   }
 
   function initCitadels() {
@@ -319,10 +320,10 @@ export function createDipHopper(
   function initLambos() {
     const s = speedScale();
     const carW = 28;
-    // Gap shrinks with level: 90px at L1 down to 60px by L6+
-    const minGap = Math.max(60, 90 - (level - 1) * 6);
-    // Cars: 2 at L1, 3 at L3+ (difficulty comes from speed, not density)
-    const numCars = level <= 2 ? 2 : 3;
+    // Gap shrinks with level: 90px at L1 down to 65px by L8+
+    const minGap = Math.max(65, 90 - (level - 1) * 4);
+    // Cars: 2 at L1-3, 3 at L4+ (difficulty comes from speed, not density)
+    const numCars = level <= 3 ? 2 : 3;
 
     // Lane 1: cars going right
     lamboLane1 = [];
@@ -390,8 +391,10 @@ export function createDipHopper(
             ? "shitcoin"
             : "cloud";
         const floatDur = 4000 + Math.random() * 4000 - level * 200;
-        // From level 5, some clouds can go stormy
-        const canStorm = type === "cloud" && level >= 5 && Math.random() < 0.4;
+        // From level 6, some clouds can go stormy (ramps slowly)
+        const stormChance = Math.min(0.3, (level - 5) * 0.1); // L6: 10%, L7: 20%, L8+: 30%
+        const canStorm =
+          type === "cloud" && level >= 6 && Math.random() < stormChance;
         platforms.push({
           type,
           x: i * spacing + Math.random() * 20,
@@ -695,7 +698,7 @@ export function createDipHopper(
     // Update trains (extra gap so they don't re-enter immediately)
     const ts = BASE_TRAIN_SPEED * speedScale();
     // Gap scales with level — shorter at low levels, longer at high
-    const trainGap = GAME_W * (0.2 + Math.min(level - 1, 5) * 0.15);
+    const trainGap = GAME_W * (0.3 + Math.min(level - 1, 5) * 0.1);
     // Train 1 goes right: reset far off-screen left
     train1X += ts;
     if (train1X > GAME_W) train1X = -train1TotalWidth - trainGap;
@@ -778,10 +781,10 @@ export function createDipHopper(
           plat.stormTimer -= 16.67;
           if (plat.stormTimer <= 0) {
             plat.stormy = !plat.stormy;
-            // Stormy for 2-3s, calm for 4-6s
+            // Stormy for 1.5-2.5s, calm for 6-10s
             plat.stormTimer = plat.stormy
-              ? 2000 + Math.random() * 1000
-              : 4000 + Math.random() * 2000;
+              ? 1500 + Math.random() * 1000
+              : 6000 + Math.random() * 4000;
             if (plat.stormy) {
               gameTone(80, 0.1, 0.08, "sawtooth");
             }
