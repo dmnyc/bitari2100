@@ -21,7 +21,7 @@ const OG_OVERRIDES: Record<
   "/arcade/diphopper": {
     title: "Dip Hopper - Bitari 2100 Arcade",
     description:
-      "Help Pepe leap to the citadels! A retro-style frog jump arcade game in the Bitari 2100 retro Bitcoin wallet.",
+      "Help Pepe leap to the citadels! A retro-style frog jump arcade game in the Bitari 2100 Bitcoin wallet.",
     image: "https://bitari2100.vercel.app/diphopper_social.png",
   },
 };
