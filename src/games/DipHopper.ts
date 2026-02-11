@@ -508,10 +508,10 @@ export function createDipHopper(
       train = { segments: train2Segments, x: train2X, total: train2TotalWidth };
     if (!train) return "none";
 
-    const px = pepeScreenX();
+    const cx = pepeScreenX() + PEPE_W / 2; // use Pepe's center
     let segX = train.x;
     for (const seg of train.segments) {
-      if (px + PEPE_W > segX && px < segX + seg.width) {
+      if (cx >= segX && cx < segX + seg.width) {
         return seg.type === "flatbed" ? "safe" : "hit";
       }
       segX += seg.width;
