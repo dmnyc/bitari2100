@@ -321,8 +321,19 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
         >
           {"<"} BACK
         </button>
-        <span className="font-pixel text-sm sm:text-lg text-atari-bright tracking-wider flex-1 text-center">
-          ARCADE
+        <span className="flex-1 flex items-center justify-center gap-2">
+          <button
+            className="font-atari text-sm sm:text-lg text-atari-orange hover:text-atari-orange-lit tracking-wider leading-none"
+            onClick={() => {
+              playNavigate();
+              onBack();
+            }}
+          >
+            BITARI <span className="text-atari-orange-lit">2100</span>
+          </button>
+          <span className="font-pixel text-sm sm:text-lg text-atari-bright tracking-wider">
+            ARCADE
+          </span>
         </span>
         <MuteButton />
       </div>
