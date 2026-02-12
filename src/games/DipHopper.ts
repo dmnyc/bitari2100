@@ -624,17 +624,26 @@ export function createDipHopper(
             gameTone(150, 0.15, 0.12);
             // Death handled next frame when falling coin check runs
           }
-          // Bonus for landing on a bitcoin coin (floating or warning)
-          if (
-            plat &&
-            plat.type === "coin" &&
-            (plat.coinState === "floating" || plat.coinState === "warning") &&
-            !plat.collected
-          ) {
-            score += 25;
-            plat.collected = true;
-            gameTone(880, 0.12, 0.15);
-            setTimeout(() => gameTone(1100, 0.1, 0.12), 60);
+          // Bonus for landing on/near a bitcoin coin (wider hitbox for collection)
+          {
+            const px = pepeScreenX();
+            const laneIdx = pepeRow - ROW_CANYON_1;
+            const pad = 6; // extra px each side for forgiving collection
+            for (const p of canyonLanes[laneIdx]) {
+              if (
+                p.type === "coin" &&
+                (p.coinState === "floating" || p.coinState === "warning") &&
+                !p.collected &&
+                px + PEPE_W > p.x - pad &&
+                px < p.x + p.width + pad
+              ) {
+                score += 25;
+                p.collected = true;
+                gameTone(880, 0.12, 0.15);
+                setTimeout(() => gameTone(1100, 0.1, 0.12), 60);
+                break;
+              }
+            }
           }
           // Stormy cloud — die on landing
           if (plat && plat.type === "cloud" && plat.stormy) {
@@ -834,15 +843,16 @@ export function createDipHopper(
 
           // Collect floating bitcoins that overlap Pepe while riding a cloud
           if (plat.type === "cloud") {
-            const cx = pepeX + PEPE_W / 2;
+            const px = pepeX;
             const laneIdx = pepeRow - ROW_CANYON_1;
+            const pad = 6;
             for (const p of canyonLanes[laneIdx]) {
               if (
                 p.type === "coin" &&
                 (p.coinState === "floating" || p.coinState === "warning") &&
                 !p.collected &&
-                cx >= p.x &&
-                cx < p.x + p.width
+                px + PEPE_W > p.x - pad &&
+                px < p.x + p.width + pad
               ) {
                 score += 25;
                 p.collected = true;
