@@ -30,8 +30,7 @@ import {
 import { WalletProvider, useWallet } from "./contexts/WalletContext";
 import LoadingSpinner from "./components/LoadingSpinner";
 import PaymentReceivedCelebration from "./components/PaymentReceivedCelebration";
-import NotificationPrompt from "./components/NotificationPrompt";
-import InstallPrompt from "./components/InstallPrompt";
+
 import StagingGate from "./components/StagingGate";
 import { ToastProvider, useToast } from "./contexts/ToastContext";
 import { AudioProvider } from "./contexts/AudioContext";
@@ -702,8 +701,6 @@ const AppContent: React.FC = () => {
           </div>
         </div>
       )}
-      {isConnected && <NotificationPrompt />}
-      <InstallPrompt />
     </AudioProvider>
   );
 };
