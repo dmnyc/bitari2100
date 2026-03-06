@@ -12,6 +12,7 @@ import {
 import { createHashBreaker } from "../games/HashBreaker";
 import { createPowMan } from "../games/PowMan";
 import { createDipHopper } from "../games/DipHopper";
+import { createAsterordinals } from "../games/Asterordinals";
 import { useLightningAddress } from "../features/receive/hooks/useLightningAddress";
 import { QRCodeContainer, CopyableText } from "../components/ui";
 
@@ -28,13 +29,14 @@ interface ArcadePageProps {
   onBack: () => void;
   onCreateWallet?: () => void;
   onRestoreWallet?: () => void;
-  initialGame?: "hashout" | "powman" | "diphopper" | "rom";
+  initialGame?: "hashout" | "powman" | "diphopper" | "asterordinals" | "rom";
   onNavigate?: (
     screen:
       | "arcade"
       | "arcade/hashout"
       | "arcade/powman"
       | "arcade/diphopper"
+      | "arcade/asterordinals"
       | "arcade/rom",
   ) => void;
 }
@@ -219,12 +221,13 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
     (game: string) => {
       setSelectedGame(game);
       paidRef.current = false;
-      if (game === "hashout" || game === "powman" || game === "diphopper") {
+      if (game === "hashout" || game === "powman" || game === "diphopper" || game === "asterordinals") {
         onNavigate?.(
           `arcade/${game}` as
             | "arcade/hashout"
             | "arcade/powman"
-            | "arcade/diphopper",
+            | "arcade/diphopper"
+            | "arcade/asterordinals",
         );
         setScreen("playing");
       }
@@ -269,10 +272,17 @@ const ArcadePage: React.FC<ArcadePageProps> = ({
               shouldGate,
               IS_DEV,
             )
-          : createHashBreaker(
-              canvasRef.current,
-              handleGameStateChange,
-              shouldGate,
+          : selectedGame === "asterordinals"
+            ? createAsterordinals(
+                canvasRef.current,
+                handleGameStateChange,
+                shouldGate,
+                IS_DEV,
+              )
+            : createHashBreaker(
+                canvasRef.current,
+                handleGameStateChange,
+                shouldGate,
             );
     gameRef.current = game;
     (window as any).__game = game;
@@ -485,6 +495,23 @@ function GameMenu({
         </div>
       </button>
 
+      {/* Asterordinals */}
+      <button
+        className="w-full max-w-sm border-2 border-atari-darkgray p-4 hover:border-atari-orange transition-colors"
+        onPointerEnter={playHover}
+        onClick={() => {
+          playClick();
+          onSelectGame("asterordinals");
+        }}
+      >
+        <div className="font-pixel text-xl sm:text-2xl text-atari-yellow mb-2 text-center">
+          ASTERORDINALS
+        </div>
+        <div className="font-pixel text-sm text-atari-midgray text-center">
+          OBLITERATE THE JPEGS
+        </div>
+      </button>
+
       {/* Coming soon placeholders */}
       {["21 MILLIPEDE", "MOON LANDER", "LUNAR ROVER", "SATOSHI'S QUEST"].map(
         (name) => (
@@ -644,7 +671,9 @@ function DonateGate({
 
     // Amount selection + LN address fallback
     const addrStr = lnAddress?.lightningAddress || "";
-    const lnurl = lnAddress?.lnurl || "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lnurlVal = lnAddress?.lnurl as any;
+    const lnurl = typeof lnurlVal === "string" ? lnurlVal : lnurlVal?.bech32 || "";
     return (
       <div className="flex flex-col items-center gap-4 py-4 px-4 max-w-xs">
         <div className="font-pixel text-lg text-atari-yellow text-center">
