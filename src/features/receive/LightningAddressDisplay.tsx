@@ -153,7 +153,7 @@ const LightningAddressDisplay: React.FC<LightningAddressDisplayProps> = ({
 
   return (
     <div className="flex flex-col items-center gap-4 py-2">
-      <QRCodeContainer value={address?.lnurl || ""} />
+      <QRCodeContainer value={address?.lnurl?.bech32 || ""} />
 
       <div className="w-full flex flex-col items-center gap-3">
         <CopyableText
