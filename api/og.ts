@@ -44,29 +44,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const ua = req.headers["user-agent"] || "";
-  if (!CRAWLER_RE.test(ua)) {
-    // Real user — serve the SPA index.html so the app boots at this path
-    try {
-      const html = readFileSync(
-        join(process.cwd(), "dist", "index.html"),
-        "utf-8",
-      );
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      res.status(200).send(html);
-    } catch {
-      res.redirect(302, "/");
-    }
-    return;
-  }
-
-  // Crawler — serve minimal HTML with OG tags
   const url = `https://bitari2100.vercel.app${path}`;
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>${override.title}</title>
+  const ogTags = `<title>${override.title}</title>
 <meta name="description" content="${override.description}" />
 <meta property="og:title" content="${override.title}" />
 <meta property="og:description" content="${override.description}" />
@@ -76,7 +55,34 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${override.title}" />
 <meta name="twitter:description" content="${override.description}" />
-<meta name="twitter:image" content="${override.image}" />
+<meta name="twitter:image" content="${override.image}" />`;
+
+  const ua = req.headers["user-agent"] || "";
+  if (!CRAWLER_RE.test(ua)) {
+    // Real user — serve the SPA index.html with game-specific OG tags
+    try {
+      let html = readFileSync(
+        join(process.cwd(), "dist", "index.html"),
+        "utf-8",
+      );
+      // Strip default OG/twitter meta tags and title, inject game-specific ones
+      html = html.replace(/<title>.*?<\/title>/, "");
+      html = html.replace(/<meta\s+(property="og:|name="twitter:|name="description")[^>]*\/?>(\s*\n?)/g, "");
+      html = html.replace(/(<head[^>]*>)/, `$1\n${ogTags}`);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.status(200).send(html);
+    } catch {
+      res.redirect(302, "/");
+    }
+    return;
+  }
+
+  // Crawler — serve minimal HTML with OG tags
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+${ogTags}
 </head>
 <body></body>
 </html>`;
