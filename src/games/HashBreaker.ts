@@ -9,6 +9,7 @@
  * Atari 2600 NTSC palette colors.
  */
 
+import { createGameLoop } from "./gameLoop";
 import {
   playClick,
   playError,
@@ -213,7 +214,6 @@ export function createHashBreaker(
   };
   let bricks: Brick[] = [];
   let animFrame = 0;
-  let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
   let pauseStart = 0;
 
@@ -706,12 +706,11 @@ export function createHashBreaker(
   }
 
   // --- Game loop ---
-  function gameLoop() {
+  const loop = createGameLoop(() => {
     animFrame++;
     update();
     draw();
-    rafId = requestAnimationFrame(gameLoop);
-  }
+  });
 
   function startGame() {
     score = 0;
@@ -734,11 +733,11 @@ export function createHashBreaker(
     canvas.addEventListener("click", onMouseClick);
 
     setState("title");
-    gameLoop();
+    loop.start();
   }
 
   function stop() {
-    if (rafId !== null) cancelAnimationFrame(rafId);
+    loop.stop();
     if (levelClearTimer !== null) clearTimeout(levelClearTimer);
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
@@ -747,7 +746,6 @@ export function createHashBreaker(
     canvas.removeEventListener("touchend", onTouchEnd);
     canvas.removeEventListener("mousemove", onMouseMove);
     canvas.removeEventListener("click", onMouseClick);
-    rafId = null;
   }
 
   return {

@@ -10,6 +10,7 @@
  * Atari 2600 NTSC palette colors.
  */
 
+import { createGameLoop } from "./gameLoop";
 import {
   playError,
   playCelebration,
@@ -254,7 +255,6 @@ export function createDipHopper(
   let level = 1;
   let lives = LIVES_INITIAL;
   let animFrame = 0;
-  let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
   let pauseStart = 0;
 
@@ -1909,12 +1909,11 @@ export function createDipHopper(
     setState("playing");
   }
 
-  function gameLoop() {
+  const loop = createGameLoop(() => {
     animFrame++;
     update();
     draw();
-    rafId = requestAnimationFrame(gameLoop);
-  }
+  });
 
   // --- Input handlers ---
   function onKeyDown(e: KeyboardEvent) {
@@ -2025,18 +2024,17 @@ export function createDipHopper(
     canvas.addEventListener("touchstart", onTouchStart, { passive: false });
     canvas.addEventListener("touchend", onTouchEnd, { passive: false });
     canvas.addEventListener("click", onMouseClick);
-    rafId = requestAnimationFrame(gameLoop);
+    loop.start();
   }
 
   function stop() {
-    if (rafId != null) cancelAnimationFrame(rafId);
+    loop.stop();
     if (levelClearTimer) clearTimeout(levelClearTimer);
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
     canvas.removeEventListener("touchstart", onTouchStart);
     canvas.removeEventListener("touchend", onTouchEnd);
     canvas.removeEventListener("click", onMouseClick);
-    rafId = null;
   }
 
   return {

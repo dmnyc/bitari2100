@@ -14,6 +14,7 @@ import {
   playCelebration,
   isMuted,
 } from "../services/tiaSoundService";
+import { createGameLoop } from "./gameLoop";
 
 // --- Atari 2600 palette ---
 const C = {
@@ -667,7 +668,6 @@ export function createAsterordinals(
   let lives = LIVES_INITIAL;
   let nextExtraLifeScore = EXTRA_LIFE_SCORE;
   let animFrame = 0;
-  let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
   let pauseStart = 0;
   let lastTime = 0;
@@ -1586,15 +1586,14 @@ export function createAsterordinals(
   }
 
   // --- Game loop ---
-  function gameLoop(timestamp: number) {
+  const loop = createGameLoop((timestamp: number) => {
     const dt = lastTime ? Math.min(timestamp - lastTime, 50) : 16.67;
     lastTime = timestamp;
 
     animFrame++;
     update(dt);
     draw();
-    rafId = requestAnimationFrame(gameLoop);
-  }
+  });
 
   // Detect touch-primary device (no fine pointer = phone/tablet)
   const isTouchDevice =
@@ -1617,12 +1616,12 @@ export function createAsterordinals(
 
     setState("title");
     lastTime = 0;
-    rafId = requestAnimationFrame(gameLoop);
+    loop.start();
   }
 
   function stop() {
     stopThrustSound();
-    if (rafId !== null) cancelAnimationFrame(rafId);
+    loop.stop();
     if (levelClearTimer !== null) clearTimeout(levelClearTimer);
     if (respawnTimer !== null) clearTimeout(respawnTimer);
     window.removeEventListener("keydown", onKeyDown);
@@ -1631,7 +1630,6 @@ export function createAsterordinals(
     canvas.removeEventListener("touchmove", onTouchMove);
     canvas.removeEventListener("touchend", onTouchEnd);
     canvas.removeEventListener("click", onMouseClick);
-    rafId = null;
   }
 
   return {

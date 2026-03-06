@@ -9,6 +9,7 @@
  * Atari 2600 NTSC palette colors.
  */
 
+import { createGameLoop } from "./gameLoop";
 import {
   playError,
   playCelebration,
@@ -607,7 +608,6 @@ export function createPowMan(
   let lives = LIVES_INITIAL;
   let extraLifeAwarded = false;
   let animFrame = 0;
-  let rafId: number | null = null;
   let levelClearTimer: ReturnType<typeof setTimeout> | null = null;
   let dyingTimer: ReturnType<typeof setTimeout> | null = null;
   let readyTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1894,12 +1894,11 @@ export function createPowMan(
   }
 
   // --- Game loop ---
-  function gameLoop() {
+  const loop = createGameLoop(() => {
     animFrame++;
     update();
     draw();
-    rafId = requestAnimationFrame(gameLoop);
-  }
+  });
 
   function enterReady() {
     setState("ready");
@@ -2046,11 +2045,11 @@ export function createPowMan(
     canvas.addEventListener("click", onMouseClick);
 
     setState("title");
-    gameLoop();
+    loop.start();
   }
 
   function stop() {
-    if (rafId !== null) cancelAnimationFrame(rafId);
+    loop.stop();
     if (levelClearTimer !== null) clearTimeout(levelClearTimer);
     if (dyingTimer !== null) clearTimeout(dyingTimer);
     if (readyTimer !== null) clearTimeout(readyTimer);
@@ -2059,7 +2058,6 @@ export function createPowMan(
     canvas.removeEventListener("touchstart", onTouchStart);
     canvas.removeEventListener("touchend", onTouchEnd);
     canvas.removeEventListener("click", onMouseClick);
-    rafId = null;
   }
 
   return {
