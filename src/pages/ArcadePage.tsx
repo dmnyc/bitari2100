@@ -671,7 +671,9 @@ function DonateGate({
 
     // Amount selection + LN address fallback
     const addrStr = lnAddress?.lightningAddress || "";
-    const lnurl = lnAddress?.lnurl?.bech32 || "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lnurlVal = lnAddress?.lnurl as any;
+    const lnurl = typeof lnurlVal === "string" ? lnurlVal : lnurlVal?.bech32 || "";
     return (
       <div className="flex flex-col items-center gap-4 py-4 px-4 max-w-xs">
         <div className="font-pixel text-lg text-atari-yellow text-center">
