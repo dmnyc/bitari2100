@@ -36,6 +36,7 @@ import { ToastProvider, useToast } from "./contexts/ToastContext";
 import { AudioProvider } from "./contexts/AudioContext";
 import AppShell from "./components/layout/AppShell";
 import { hideSplash } from "./main";
+import { applyPageMetadata } from "./utils/applyPageMetadata";
 
 // Eager-loaded pages (critical path)
 import HomePage from "./pages/HomePage";
@@ -110,6 +111,10 @@ const AppContent: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>(
     () => screenFromPath(window.location.pathname) ?? "home",
   );
+
+  useEffect(() => {
+    applyPageMetadata(window.location.pathname);
+  }, [currentScreen]);
 
   /** Navigate to a screen, pushing a history entry. */
   const navigateTo = useCallback((screen: Screen) => {

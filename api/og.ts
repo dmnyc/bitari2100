@@ -1,61 +1,38 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { readFileSync } from "fs";
 import { join } from "path";
-
-const OG_OVERRIDES: Record<
-  string,
-  { title: string; description: string; image: string }
-> = {
-  "/arcade/hashout": {
-    title: "Hash-Out - Bitari 2100 Arcade",
-    description:
-      "Blast bricks to mine blocks! A Breakout-style arcade game in the Bitari 2100 retro Bitcoin wallet.",
-    image: "https://bitari2100.vercel.app/hashout_social.png",
-  },
-  "/arcade/powman": {
-    title: "POW-MAN - Bitari 2100 Arcade",
-    description:
-      "Energy-intense maze pursuit! An arcade game in the Bitari 2100 retro Bitcoin wallet.",
-    image: "https://bitari2100.vercel.app/powman_social.png",
-  },
-  "/arcade/diphopper": {
-    title: "Dip Hopper - Bitari 2100 Arcade",
-    description:
-      "Help Pepe leap to the citadels! A retro-style frog jump arcade game in the Bitari 2100 Bitcoin wallet.",
-    image: "https://bitari2100.vercel.app/diphopper_social.png",
-  },
-  "/arcade/asterordinals": {
-    title: "Asterordinals - Bitari 2100 Arcade",
-    description:
-      "Obliterate the JPEGs! A retro space shooter arcade game in the Bitari 2100 Bitcoin wallet.",
-    image: "https://bitari2100.vercel.app/asterordinals_social.png",
-  },
-};
+import {
+  getPageMetadata,
+  normalizePathname,
+  OG_ROUTE_PATHS,
+} from "../src/utils/pageMetadata";
 
 const CRAWLER_RE =
   /bot|crawl|spider|slurp|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|TelegramBot|Discordbot|Embedly|Quora Link Preview|Showyoubot|outbrain|pinterest|vkShare|W3C_Validator/i;
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  const path = req.query.path as string;
-  const override = OG_OVERRIDES[path];
+  const path = normalizePathname(req.query.path as string);
 
-  if (!override) {
+  if (!OG_ROUTE_PATHS.includes(path)) {
     res.redirect(302, "/");
     return;
   }
 
-  const url = `https://bitari2100.vercel.app${path}`;
-  const ogTags = `<title>${override.title}</title>
-<meta name="description" content="${override.description}" />
-<meta property="og:title" content="${override.title}" />
-<meta property="og:description" content="${override.description}" />
-<meta property="og:image" content="${override.image}" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="${url}" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="${override.title}" />
-<meta name="twitter:description" content="${override.description}" />
-<meta name="twitter:image" content="${override.image}" />`;
+  const metadata = getPageMetadata(path);
+  const ogTags = `<title>${metadata.title}</title>
+<meta name="description" content="${metadata.description}" />
+<meta property="og:title" content="${metadata.title}" />
+<meta property="og:description" content="${metadata.description}" />
+<meta property="og:image" content="${metadata.image}" />
+<meta property="og:image:alt" content="${metadata.imageAlt}" />
+<meta property="og:image:width" content="${metadata.imageWidth}" />
+<meta property="og:image:height" content="${metadata.imageHeight}" />
+<meta property="og:type" content="${metadata.type}" />
+<meta property="og:url" content="${metadata.url}" />
+<meta name="twitter:card" content="${metadata.twitterCard}" />
+<meta name="twitter:title" content="${metadata.title}" />
+<meta name="twitter:description" content="${metadata.description}" />
+<meta name="twitter:image" content="${metadata.image}" />`;
 
   const ua = req.headers["user-agent"] || "";
   if (!CRAWLER_RE.test(ua)) {
@@ -67,7 +44,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       );
       // Strip default OG/twitter meta tags and title, inject game-specific ones
       html = html.replace(/<title>.*?<\/title>/, "");
-      html = html.replace(/<meta\s+(property="og:|name="twitter:|name="description")[^>]*\/?>(\s*\n?)/g, "");
+      html = html.replace(
+        /<meta\s+(property="og:|name="twitter:|name="description")[^>]*\/?>(\s*\n?)/g,
+        "",
+      );
       html = html.replace(/(<head[^>]*>)/, `$1\n${ogTags}`);
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       res.status(200).send(html);
