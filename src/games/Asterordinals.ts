@@ -699,9 +699,17 @@ export function createAsterordinals(
 
   // Input
   const keys: Record<string, boolean> = {};
-  let touchRotateLeft = false;
-  let touchRotateRight = false;
   let touchThrust = false;
+  let touchAngle = 0; // angle from swipe gesture
+  let touchAiming = false; // true when swipe is actively setting ship angle
+
+  // Swipe tracking per-touch
+  const touchStarts: Map<
+    number,
+    { x: number; y: number; time: number }
+  > = new Map();
+  const TAP_MAX_DIST = 15; // px in game coords
+  const TAP_MAX_TIME = 250; // ms
 
   // Starfield
   const stars: { x: number; y: number; brightness: number }[] = [];
@@ -966,11 +974,16 @@ export function createAsterordinals(
 
     animFrame++;
 
-    // Ship rotation
-    const rotateLeft = keys["ArrowLeft"] || keys["a"] || keys["A"] || touchRotateLeft;
-    const rotateRight = keys["ArrowRight"] || keys["d"] || keys["D"] || touchRotateRight;
+    // Ship rotation — keyboard
+    const rotateLeft = keys["ArrowLeft"] || keys["a"] || keys["A"];
+    const rotateRight = keys["ArrowRight"] || keys["d"] || keys["D"];
     if (rotateLeft && ship.alive) ship.angle -= SHIP_TURN_SPEED;
     if (rotateRight && ship.alive) ship.angle += SHIP_TURN_SPEED;
+
+    // Ship rotation — touch swipe overrides angle directly
+    if (touchAiming && ship.alive) {
+      ship.angle = touchAngle;
+    }
 
     // Thrust
     const thrusting = (keys["ArrowUp"] || keys["w"] || keys["W"] || touchThrust) && ship.alive;
@@ -1295,8 +1308,14 @@ export function createAsterordinals(
       drawText("PRESS START", GAME_W / 2, 115, C.yellow, 10, "center");
     }
 
-    drawText("ARROWS: ROTATE + THRUST", GAME_W / 2, 205, C.darkgray, 9, "center");
-    drawText("SPACE: FIRE", GAME_W / 2, 222, C.darkgray, 9, "center");
+    const hasTouch = "ontouchstart" in window;
+    if (hasTouch) {
+      drawText("SWIPE: THRUST", GAME_W / 2, 205, C.darkgray, 9, "center");
+      drawText("TAP: FIRE", GAME_W / 2, 222, C.darkgray, 9, "center");
+    } else {
+      drawText("ARROWS: ROTATE + THRUST", GAME_W / 2, 205, C.darkgray, 9, "center");
+      drawText("SPACE: FIRE", GAME_W / 2, 222, C.darkgray, 9, "center");
+    }
   }
 
   function drawGameOver() {
@@ -1350,9 +1369,20 @@ export function createAsterordinals(
     const thrusting = (keys["ArrowUp"] || keys["w"] || keys["W"] || touchThrust) && ship.alive;
     drawShipGfx(thrusting);
 
-    // Touch control hints (very faint)
-    if (state === "playing" && (touchRotateLeft || touchRotateRight || touchThrust)) {
-      // Only show when actively touching
+    // Touch thrust direction indicator
+    if (state === "playing" && touchThrust && touchAiming) {
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      ctx.strokeStyle = C.orange;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(
+        ship.x + Math.cos(touchAngle) * 30,
+        ship.y + Math.sin(touchAngle) * 30
+      );
+      ctx.stroke();
+      ctx.restore();
     }
 
     // Level clear overlay
@@ -1455,47 +1485,93 @@ export function createAsterordinals(
       return;
     }
 
-    updateTouches(e.touches);
+    // Record start position for each new touch
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      const { tx, ty } = getTouchPos(t);
+      touchStarts.set(t.identifier, { x: tx, y: ty, time: Date.now() });
+    }
   }
 
   function onTouchMove(e: TouchEvent) {
     e.preventDefault();
-    if (state === "playing") updateTouches(e.touches);
+    if (state !== "playing") return;
+
+    // Check all active touches for swipe gestures
+    let swiping = false;
+    for (let i = 0; i < e.touches.length; i++) {
+      const t = e.touches[i];
+      const start = touchStarts.get(t.identifier);
+      if (!start) continue;
+
+      const { tx, ty } = getTouchPos(t);
+      const dx = tx - start.x;
+      const dy = ty - start.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > TAP_MAX_DIST) {
+        // Swipe detected — set angle and thrust
+        touchAngle = Math.atan2(dy, dx);
+        touchAiming = true;
+        touchThrust = true;
+        swiping = true;
+      }
+    }
+
+    if (!swiping) {
+      touchThrust = false;
+      touchAiming = false;
+    }
   }
 
   function onTouchEnd(e: TouchEvent) {
     e.preventDefault();
-    if (e.touches.length === 0) {
-      touchRotateLeft = false;
-      touchRotateRight = false;
-      touchThrust = false;
-    } else {
-      updateTouches(e.touches);
-    }
-  }
 
-  function updateTouches(touches: TouchList) {
-    touchRotateLeft = false;
-    touchRotateRight = false;
-    touchThrust = false;
-    let shouldFire = false;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      const start = touchStarts.get(t.identifier);
+      touchStarts.delete(t.identifier);
 
-    for (let i = 0; i < touches.length; i++) {
-      const { tx, ty } = getTouchPos(touches[i]);
+      if (!start) continue;
 
-      if (ty > GAME_H * 0.65) {
-        // Bottom control zone
-        if (tx < GAME_W * 0.33) touchRotateLeft = true;
-        else if (tx > GAME_W * 0.66) touchRotateRight = true;
-        else touchThrust = true;
-      } else {
-        // Upper area = fire
-        shouldFire = true;
+      // Check if this was a tap (short + small movement)
+      const { tx, ty } = getTouchPos(t);
+      const dx = tx - start.x;
+      const dy = ty - start.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = Date.now() - start.time;
+
+      if (dist <= TAP_MAX_DIST && elapsed <= TAP_MAX_TIME) {
+        // Tap = fire
+        if (state === "playing" && fireCooldown <= 0 && ship.alive) {
+          fireBullet();
+        }
       }
     }
 
-    if (shouldFire && fireCooldown <= 0 && ship.alive) {
-      fireBullet();
+    // If no touches remain, stop thrusting
+    if (e.touches.length === 0) {
+      touchThrust = false;
+      touchAiming = false;
+    } else {
+      // Re-evaluate remaining touches
+      let stillSwiping = false;
+      for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i];
+        const start = touchStarts.get(t.identifier);
+        if (!start) continue;
+        const { tx, ty } = getTouchPos(t);
+        const dx = tx - start.x;
+        const dy = ty - start.y;
+        if (Math.sqrt(dx * dx + dy * dy) > TAP_MAX_DIST) {
+          stillSwiping = true;
+          touchAngle = Math.atan2(dy, dx);
+        }
+      }
+      if (!stillSwiping) {
+        touchThrust = false;
+        touchAiming = false;
+      }
     }
   }
 
