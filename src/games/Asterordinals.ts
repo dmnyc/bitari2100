@@ -1308,8 +1308,7 @@ export function createAsterordinals(
       drawText("PRESS START", GAME_W / 2, 115, C.yellow, 10, "center");
     }
 
-    const hasTouch = "ontouchstart" in window;
-    if (hasTouch) {
+    if (isTouchDevice) {
       drawText("SWIPE: THRUST", GAME_W / 2, 205, C.darkgray, 9, "center");
       drawText("TAP: FIRE", GAME_W / 2, 222, C.darkgray, 9, "center");
     } else {
@@ -1597,14 +1596,24 @@ export function createAsterordinals(
     rafId = requestAnimationFrame(gameLoop);
   }
 
+  // Detect touch-primary device (no fine pointer = phone/tablet)
+  const isTouchDevice =
+    "ontouchstart" in window &&
+    !window.matchMedia("(pointer: fine)").matches;
+
   // --- Public API ---
   function start() {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
-    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
-    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
-    canvas.addEventListener("touchend", onTouchEnd, { passive: false });
-    canvas.addEventListener("click", onMouseClick);
+    if (isTouchDevice) {
+      // Mobile: swipe to thrust, tap to fire
+      canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+      canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+      canvas.addEventListener("touchend", onTouchEnd, { passive: false });
+    } else {
+      // Desktop: click to fire, keyboard for movement
+      canvas.addEventListener("click", onMouseClick);
+    }
 
     setState("title");
     lastTime = 0;
