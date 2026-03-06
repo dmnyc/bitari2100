@@ -12,6 +12,10 @@
       "source": "/arcade/diphopper",
       "destination": "/api/og?path=/arcade/diphopper"
     },
+    {
+      "source": "/arcade/asterordinals",
+      "destination": "/api/og?path=/arcade/asterordinals"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
