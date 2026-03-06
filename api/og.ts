@@ -24,6 +24,12 @@ const OG_OVERRIDES: Record<
       "Help Pepe leap to the citadels! A retro-style frog jump arcade game in the Bitari 2100 Bitcoin wallet.",
     image: "https://bitari2100.vercel.app/diphopper_social.png",
   },
+  "/arcade/asterordinals": {
+    title: "Asterordinals - Bitari 2100 Arcade",
+    description:
+      "Obliterate the JPEGs! A retro space shooter arcade game in the Bitari 2100 Bitcoin wallet.",
+    image: "https://bitari2100.vercel.app/asterordinals_social.png",
+  },
 };
 
 const CRAWLER_RE =
